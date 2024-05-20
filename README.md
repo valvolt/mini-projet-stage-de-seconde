@@ -40,7 +40,7 @@ On a tout ce qu'il faut pour faire fonctionner le jeu, mais maintenant il faut l
 
 Pour installer VSCode, faites ceci:
 
-1. Sur Internet, allez sur https://code.visualstudio.com/download sdfsdfsdfsdfsdfjksdfjlksdjflksjdflksjdflksjdflksjdflks
+1. Sur Internet, allez sur https://code.visualstudio.com/download
 2. Cliquez sur le bouton `Windows`
 3. Sur votre PC allez dans le répertoire `Téléchargements` et double-cliquez sur le fichier téléchargé
   * Suivez les instructions à l'écran
