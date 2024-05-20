@@ -159,9 +159,9 @@ text_color = (0, 0, 0)
 # Explications:
 #  200: position du bouton par rapport au bord gauche
 #  50: position du bouton par rapport au haut de la fenêtre
-#  100: longueur du bouton
+#  150: longueur du bouton
 #  50: hauteur du bouton
-bouton_relancer = pygame.Rect(200, 50, 100, 50)
+bouton_relancer = pygame.Rect(200, 50, 150, 50)
 ```
 
 ```
