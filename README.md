@@ -90,6 +90,8 @@ pygame.quit()
 * Pour tester que ca fonctionne, démarrez le programme. Dans VSCode, en haut de la fenêtre de jeu.py, il y a un petit triangle (comme un bouton 'play'). Appuyez dessus.
 * Si tout va bien, une fenêtre blanche va s'afficher. Cliquez sur la croix pour la fermer.
 
+![version 0](jeu0.png)
+
 Félicitations, vous êtes maintenant prêt à programmer le jeu de 1000 Sabords !
 
 ## 1ère mission: jeter un dé
@@ -193,6 +195,11 @@ elif event.type == pygame.MOUSEBUTTONDOWN:
 
 N'hésitez pas à tester au fur et à mesure. Si tout va bien, vous devriez maintenant avoir un jeu où on peut relancer le dé à chaque fois qu'on appuie sur le bouton. Bon, y'a encore du boulot pour avoir un jeu complet, mais c'est déjà une très bonne base ! Félicitations et à demain pour le deuxième module.
 
+![version 1](jeu1.png)
+
+|:warning: FAITES UNE SAUVEGARDE ! :warning:|
+|--------|
+|Faites une copie de `jeu.py` et renommez la copie `jeu1.py`. Si vous cassez votre code avec le deuxième module vous pourrez repartir d'un code qui fonctionne...|
 
 ## 2ème mission: afficher 8 dés, bloquer des dés
 Un dé c'est bien, mais il nous en faut huit !
@@ -284,13 +291,268 @@ if de_1 == 6:
 ```
 Faites la même chose pour les autres dés.
 
+Il reste maintenant un petit bug à corriger: vous avez peut-être remarqué que si en lancant le jeu vous avez des têtes de mort, elles sont sur fond vers et pas sur fond noir. La faute à quoi ? À ce code que vous avez mis tout à l'heure:
+
+```
+# Initialiser la couleur du bord
+couleur_de_1 = green
+```
+
+La solution ? Pour chaque dé, mettre la couleur à noir si le dé a une valeur de 6 et à vert sinon. Le code qui va faire ca, vous l'aurez probablement trouvé par vous-même, est le suivant:
+
+```
+# Initialiser la couleur du bord
+# Cas particulier: le dé tombe directement sur une tête de mort
+if de_1 == 6:
+  couleur_de_1 = black
+else:
+  couleur_de_1 = green
+```
+
 Testez votre code si ce n'est déjà fait (on ne fait jamais trop de tests !). Si vous ne bloquez aucun dé et que vous relancez plusieurs fois, vous finirez par avoir 8 têtes de mort.
 
 Si c'est le cas, félicitations, vous avez rempli votre deuxième mission avec succès !
 
-## 3ème mission: fin de tour, afficher / masquer le score potentiel
+![version 2](jeu2.png)
+
+|:warning: FAITES UNE SAUVEGARDE ! :warning:|
+|--------|
+|Faites une copie de `jeu.py` et renommez la copie `jeu2.py`. Si vous cassez votre code avec le troisième module vous pourrez repartir d'un code qui fonctionne...|
+
+
+## 3ème mission: trier les dés, calculer le score potentiel
+Dans cette mission nous allons aider le joueur à y voir plus clair. Au menu:
+  * classer les dés automatiquement par face
+  * calculer le score potentiel
+
+### Classer les dés
+L'idée est de grouper ensemble les dés qui sont sur la même face. Nous allons les classer par ordre de valeur (de 1 à 6), ce qui nous donnera l'ordre suivant:
+* diamant
+* pièce d'or
+* singe
+* perroquet
+* sabre
+* tête de mort
+Pour classer les dés, nous allons procéder comme suit:
+1. regarder la valeur des 8 dés, sauver ces valeurs dans un tableau
+2. trier le tableau par ordre croissant
+3. assigner les nouvelles valeurs aux dés
+
+C'est assez simple à faire en python, placez ce code au bon endroit:
+```
+# On stocke le contenu des variables dans un tableau
+stockage = [de_1, de_2, de_3, de_4, de_5, de_6, de_7, de_8]
+# On trie dans l'ordre croissant
+stockate.sort()
+# On ré-assigne les valeurs triées aux variables
+de_1, de_2, de_3, de_4, de_5, de_6, de_7, de_8 = stockage
+```
+
+Si vous avez mis le code au bon endroit, vous devriez voir que les dés sont triés. Mais après avoir relancé quelques fois, vous devriez voir un problème: quand un dé prend la valeur 'tête de mort', son bord devient noir et il ne peut plus être relancé. Mais avec le tri automatique, la tête de mort se déplace vers la droite, et c'est un autre dé qui garde le bord noir... Bref, le problème est que quand on déplace un dé, il faut également déplacer la couleur de son bord !
+
+Il va donc falloir faire plus subtil. Nous allons non seulement stocker la valeur des dés mais également leur couleur dans le tableau, avant de le trier.
+
+Pour ce faire, dans le tableau stockage, au lieu de `de_1`, mettez `(de_1, couleur_de_1)` et faites la même chose pour les autres dés. Ca va stocker dans le notre tableau la valeur de dés ainsi que leur couleur. La commande qui fait le tri reste identique: par défaut, le tri se fait sur la première valeur stockée de chaque élément, c'est à dire la valeur du dé.
+
+Enfin, lors de la ré-assignation, là encore au lieu de mettre `de_1` il suffit de mettre `(de_1, couleur_de_1)`, python comprendra qu'il doit récupérer la première valeur et la mettre dans la variable `de_1`, puis la première couleur et la mettre dans la variable `couleur_de_1`, etc.
+
+Il n'y a plus qu'à tester ! Si vous voyez encore un truc qui cloche - si quand vous cliquez sur un dé, ce n'est pas le bon dé qui change de couleur, c'est parce que le tri n'est pas fait au bon endroit. En effet, chaque fois que l'on appuie sur quelque-chose, tout l'écran est redessiné. Si le tri est fait trop tôt dans la boucle infinie ou trop tard, alors les dés sont triés à nouveau, ce qui peut déplacer la couleur du fond. La solution ? Mettre ce code de tri dans la partie du code où on a appuyé sur le bouton RELANCER, juste après avoir effectivement relancé les dés.
+
+Il reste encore un cas à traiter: si vous avez suivi ces explications, alors il est fort probable que le tri fonctionne... sauf pour le tout premier jet, avant qu'on ait appuyé sur RELANCER. La solution ? Copiez le code de tri que vous venez d'écrire et collez-le juste après avoir initialisé la première valeur et la première couleur des dés. Vous aurez donc un premier tri lors du premier affichage des dés et un nouveau tri après chaque relance.
+
+### Le score potentiel
+Ca commence à bien prendre forme !
+
+Maintenant nous allons aider le joueur à savoir combien sa combinaison affichée vaut de points. Pour ce faire nous allons regarder les points suivants:
+* 0 point sur 3 têtes de mort ou plus
+* 100 points par diamants
+* 100 points par pièce d'or
+* séries de dés identiques:
+  * 100 points par série de 3
+  * 200 points par série de 4
+  * 500 points par série de 5
+  * 1000 points par série de 6
+  * 2000 points par série de 7
+  * 4000 points par série de 8
+* bonus de 500 points si zéro tête de mort
+
+Pour commencer nous allons afficher une zone de texte en bas à droite qui fait le calcul des diamants et des pièces d'or.
+
+Il nous faut une variable `total` qui va contenir le score total, une variable `mult_diamants` qui contient le nombre de diamants par lequel il faut multiplier, et une variable `mult_pieces` qui contient le multiplicateur pour les pièces d'or.
+
+Pour voir si l'affichage fonctionne, on donne des valeurs quelconques à ces variables, ce qui donne:
+
+```
+# Variables pour le calcul du score
+mult_diamants = 1
+mult_pieces = 2
+total = 300
+
+# Afficher la zone de texte pour les scores
+font = pygame.font.Font(None, 30)
+# Le texte que l'on va afficher, et où les variables seront mises à jour
+scores_text = [
+    f"Diamants: x{mult_diamants} = {100 * mult_diamants}",
+    f"Pièces d'or: x{mult_pieces} = {100 * mult_pieces}",
+    f"TOTAL: {total} points"
+]
+# boucle qui prend chaque ligne de texte et qui l'affiche
+for i, line in enumerate(scores_text):
+    text_surf = font.render(line, True, text_color)
+    screen.blit(text_surf, (400, 300 + i * 30))
+```
+
+Le problème de ce code est qu'il marque toujours qu'il y a 1 diamant, 2 pièces d'or et un total de 300 points. Il faut donc maintenant calculer les vraies valeurs de ces variables.
+
+#### Diamants
+Pour avoir le bon nombre de diamants, il faut compter le nombre de dés ayant la valeur '1'. Nous pouvons créer la fonction suivante:
+```
+# fonction qui compte le nombre de dés sur la face 1 (diamant)
+def des_face_1():
+    compte = 0
+    if de_1 == 1:
+      compte = compte + 1
+    if de_2 == 1:
+      compte = compte + 1
+    if de_3 == 1:
+      compte = compte + 1
+    if de_4 == 1:
+      compte = compte + 1
+    if de_5 == 1:
+      compte = compte + 1
+    if de_6 == 1:
+      compte = compte + 1
+    if de_7 == 1:
+      compte = compte + 1
+    if de_8 == 1:
+      compte = compte + 1
+    return compte
+```
+
+Maintenant, au lieu de cette ligne de code qui fixe le multiplicateur de diamants à 1:
+```
+mult_diamants = 1
+```
+Nous pouvons écrire ce code qui va appeler la fonction des_diamant pour compter les dés sur la face diamant:
+```
+mult_diamants = des_face_1()
+```
+
+Testez ce code pour voir si le nombre de diamants varie bien en fonction du nombre de diamants affichés.
+
+Si c'est le cas, bravo à vous ! Il ne reste plus qu'à suivre la même approche pour faire les autres calculs:
+
+#### Pièces d'or
+Pour les pièces d'or: écrivez une fonction `des_face_2` qui compte le nombre de dés sur la face 2 (pièce d'or), et mettez à jour la variable `mult_pieces` pour qu'elle appelle cette fonction.
+
+#### Séries de 3
+Pour les séries de 3 dés identiques, il nous faut une fonction qui calcule si nous avons 3 dés sur la face 1, si nous avons 3 dés sur la face 2, etc.
+
+Écrivez les fonctions `des_face_3`, `des_face_4`, `des_face_5` et `des_face_6`.
+
+Pour calculer les séries de 3 dés identiques, utilisez ce code:
+```
+def serie_de_3():
+    compte = 0
+    if des_face_1() == 3:
+      compte = compte + 1
+    if des_face_2() == 3:
+      compte = compte + 1
+    if des_face_3() == 3:
+      compte = compte + 1
+    if des_face_4() == 3:
+      compte = compte + 1
+    if des_face_5() == 3:
+      compte = compte + 1
+    if des_face_6() == 3:
+      compte = compte + 1
+    return compte
+```
+
+Ajoutez une variable `mult_serie_3` là où vous avez déclaré les variables `mult_diamants` et `mult_pieces` et assignez à cette variable le nombre de séries de 3:
+```
+mult_serie_3 = serie_de_3()
+```
+
+Ajoutez une ligne de texte à la variable `scores_text` pour afficher les séries de trois:
+
+```
+scores_text = [
+    f"Diamants: x{mult_diamants} = {100 * mult_diamants}",
+    f"Pièces d'or: x{mult_pieces} = {100 * mult_pieces}",
+    f"3 dés: x{mult_serie_3} = {100 * mult_serie_3}",
+    f"TOTAL: {total} points"
+]
+```
+
+### Séries de 4, 5, 6, 7, 8
+Faites la même chose pour les séries de 4, 5, 6, 7 ou 8 dés:
+* écrivez les fonctions `serie_de_4`, `serie_de_5`, `serie_de_6` etc. qui compte le nombre de fois où nous avons 4 dés identiques, 5 dés identiques etc.
+* ajoutez une variable `mult_serie_4`, `mult_serie_5` etc qui recevra le résultat de l'appel de la fonction correspondante.
+* ajoutez le texte à `scores_text` pour ajouter les séries de 4 5 6 etc. Prenez garde à la valeur de multiplicateur: c'est 100 points pour une série de 3 dés, mais après il faut mettre la bonne valeur. Pour rappel:
+  * 4 dés: multiplier par 200
+  * 5 dés: multiplier par 500
+  * 6 dés: multiplier par 1000
+  * 7 dés: multiplier par 200
+  * 8 dés: multiplier par 4000
+
+### Bonus trésor
+Le bonus trésor est de 500 points s'il n'y a aucune tête de mort. Vous avez déjà écrit la fonction qui compte les têtes de mort: la fonction `des_face_6` ! :)
+
+Il suffit donc de compter si le résultat de des_face_6 est de zéro pour savoir si on a droit au bonus trésor.
+
+Ajoutez une variable `mult_tresor`, sa valeur devra être la suivante:
+```
+if des_face_6() == 0:
+  mult_tresor = 1
+else:
+  mult_tresor = 0
+```
+
+Ajoutez cette ligne de texte à `scores_text`
+```
+f"Trésor: x{mult_tresor} = {500 * mult_tresor}",
+```
+
+#### Total
+Il est temps de mettre à jour notre variable `total` qui est restée désespérément à la valeur 300, Remplacez la ligne
+```
+total = 300
+```
+Par ce calcul:
+```
+total = (100 * mult_diamants) + (100 * mult_pieces) + (100 * mult_serie_3) + (200 * mult_serie_4) + (500 * mult_serie_5) + (1000 * mult_serie_6) + (2000 * mult_serie_7) + (4000 * mult_serie_8) + (500 * mult_tresor)
+```
+
+#### 3 têtes de mort
+C'est terminé ? Pas tout à fait !
+
+Quand on a 3 têtes de mort ou plus, le score est de zéro. On va ajouter le code suivant juste avant la boucle qui affiche le contenu de scores_text:
+
+```
+if des_face_6() >= 3:
+    total = 0
+    scores_text = [
+        f"OH NON, C'EST PERDU !",
+        f"TOTAL: {total} points"
+    ]
+```
+
+Ce que fait ce code est la chose suivante:
+* on mets le total à 0, ce qui écrase la valeur calculée précédemment
+* on écrase le contenu de score_text avec un texte qui dit juste que c'est perdu. C'est donc ce texte qui sera affiché au lieu du calcul complet.
+
+Cette fois c'est terminé, vous pouvez être fier de vous !
+
+![version 3](jeu3.png)
+
+|:warning: FAITES UNE SAUVEGARDE ! :warning:|
+|--------|
+|Faites une copie de `jeu.py` et renommez la copie `jeu3.py`. Si vous cassez votre code avec le quatrième module vous pourrez repartir d'un code qui fonctionne...|
+
+
 ## 4ème mission: stopper son tour, score global, fin à 6000 points
-## 5ème mission: jouer à plusieurs
+## 5ème mission: jouer à plusieurs, fin de tour
 ## 6ème mission: l'île de la tête de mort
 ## 7ème mission: on affiche les cartes
 ## 8ème mission: on code les règles spéciales
