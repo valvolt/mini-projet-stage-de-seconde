@@ -485,7 +485,7 @@ scores_text = [
 ]
 ```
 
-### Séries de 4, 5, 6, 7, 8
+#### Séries de 4, 5, 6, 7, 8
 Faites la même chose pour les séries de 4, 5, 6, 7 ou 8 dés:
 * écrivez les fonctions `serie_de_4`, `serie_de_5`, `serie_de_6` etc. qui compte le nombre de fois où nous avons 4 dés identiques, 5 dés identiques etc.
 * ajoutez une variable `mult_serie_4`, `mult_serie_5` etc qui recevra le résultat de l'appel de la fonction correspondante.
@@ -496,7 +496,7 @@ Faites la même chose pour les séries de 4, 5, 6, 7 ou 8 dés:
   * 7 dés: multiplier par 200
   * 8 dés: multiplier par 4000
 
-### Bonus trésor
+#### Bonus trésor
 Le bonus trésor est de 500 points s'il n'y a aucune tête de mort. Vous avez déjà écrit la fonction qui compte les têtes de mort: la fonction `des_face_6` ! :)
 
 Il suffit donc de compter si le résultat de des_face_6 est de zéro pour savoir si on a droit au bonus trésor.
