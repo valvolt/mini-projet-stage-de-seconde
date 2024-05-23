@@ -551,7 +551,380 @@ Cette fois c'est terminé, vous pouvez être fier de vous !
 |Faites une copie de `jeu.py` et renommez la copie `jeu3.py`. Si vous cassez votre code avec le quatrième module vous pourrez repartir d'un code qui fonctionne...|
 
 
-## 4ème mission: stopper son tour, score global, fin à 6000 points
+## 4ème mission: jouer à plusieurs, stopper son tour
+C'est sympa d'essayer de faire un bon score, mais ce qui serait encore mieux serait de jouer à plusieurs !
+Au menu pour cette mission:
+* Ajouter un écran en début de jeu qui demande le nombre et le nom des joueurs
+* Sur l'écran principal, afficher le nom du joueur dont c'est le tour et son score total depuis le début de la partie
+* Ajouter un bouton pour stopper son tour avant d'avoir trois têtes de mort
+
+### L'écran d'accueil
+On commence par créer une variable qui va contenir les noms des joueurs. Tant que cette variable est vide, on saura que l'on n'a pas de joueurs et qu'il faut afficher l'écran d'accueil. Quand les noms des joueurs seront entrés, la variable sera mises à jour, et on saura qu'il faut afficher l'écran principal.
+
+Au-dessus de la ligne de la boucle infinie `while running:`, ajoutez la variable `joueurs` et initialisez les variables qui contiendront nos prénoms:
+```
+# Liste de joueurs
+joueurs = ["Toto"]
+prenom1 = ""
+prenom2 = ""
+```
+On enlèvera "Toto" plus tard, c'est un nom temporaire pour ne pas faire planter votre programme tant que l'écran d'accueil ne sera pas implémenté.
+
+Maintenant, on va tester cette variable `joueurs`. Si on a au moins un joueur, on affiche l'écran de jeu principal. Sinon, on affiche l'écran de sélection de joueurs.
+
+Ce test doit être fait juste au moment où commence la boucle infinie, soit juste après la ligne `while running:`
+
+```
+# A t'on au moins un joueur? On calcule la 'longueur' de notre tableau de joueurs
+if len(joueurs) >= 1:
+  # On a au moins un joueur, on affiche l'écran principal
+  # ON VA DEPLACER DU CODE ICI
+  pass
+else:
+  # On n'a pas de joueur, on affiche l'écran d'accueil
+  pass
+```
+
+Si vous testez ce code, vous verrez que rien n'a changé. C'est parce que pour le moment le code de l'écran principal est toujours executé.
+
+
+#### Déplacer le code de l'écran principal
+
+:warning: Attention, cette partie est un peu technique.
+
+Le code que vous venez d'ajouter teste si on a au moins un joueur (`if len(joueurs) >= 1`), mais dans ce cas il execute la commande `pass`, qui... ne fait rien. Pareil dans le `else`. Pour que notre test serve à quelque-chose, il faut maintenant *déplacer* tout le code qui gère l'écran principal et le mettre *à la place* des deux lignes suivantes:
+
+```
+  # ON VA DEPLACER DU CODE ICI
+  pass
+```
+
+'Coupez' (CTRL-X) tout le code à partir de cette ligne:
+```
+    for event in pygame.event.get():
+```
+... et jusqu'à la ligne qui **précède** ces lignes:
+```
+    # On rafraichit l'écran (on affiche le nouvel écran à la place de l'ancien)
+    pygame.display.flip()
+```
+
+Maintenant, 'collez' (CTRL-V) ce code de manière à ce qu'il remplace les lignes
+```
+  # ON VA DEPLACER DU CODE ICI
+  pass
+```
+
+Attention: vous avez mis tout ce code 'dans' le `if`, il faut donc l'indenter correctement. Pour éviter d'ajouter une indentation ligne-par-ligne, sélectionnez tout le code que vous venez de coller (s'il n'est pas déjà en surbrillance) puis appuyez sur la touche 'TAB'. Tout le code sélectionné sera décalé vers la droite. (Et pour information, appuyer sur SHIFT et TAB en même temps décale le code sélectionné vers la gauche).
+
+Testez votre jeu. Dans VSCode, si vous avez des erreurs d'indentation, vous verrez des lignes rouges dans la colonne tout à droite. Si vous avez bien déplacé le code et indenté correctement, vous devriez voir l'écran de jeu familier.
+
+#### L'écran d'accueil, pour de vrai cette fois
+Là où vous avez mis le code qui définit la zone où s'affiche le bouton RELANCER (`bouton_relancer = pygame.Rect(450, 50, 150, 50)`), ajoutez ce code qui définit où s'affichent les zones de texte pour entrer les prénoms des joueurs et le bouton 'OK' qui servira à valider:
+
+```
+# Définir les rectangles où chaque joueur entre son prénom
+rect_joueur1 = pygame.Rect(50, 50, 300, 40)
+rect_joueur2 = pygame.Rect(50, 110, 300, 40)
+# Dimensions et position du bouton 'OK' de l'écran d'accueil
+bouton_ok = pygame.Rect(150, 200, 100, 40)
+```
+
+Si vous avez suivi la logique, vous avec compris que le code qui affiche l'écran de sélection des joueurs doit se mettre dans le `else`, à la place du mot-clé `pass`:
+
+```
+else:
+  # On n'a pas de joueur, on affiche l'écran d'accueil
+  pass
+```
+
+Utilisez le code suivant pour gérér l'écran d'accueil. Le code fait les choses suivantes:
+* Il teste si on appuie sur la croix. Si oui, le jeu se ferme.
+* Il affiche le mot 'Entrez vos prénoms !'
+* Il affiche 2 zones de texte où on peut mettre son prénom
+* Et il ajoute un bouton 'OK' qui permet de valider.
+Quand on appuie sur 'OK', les prénoms sont mis dans la variable 'joueurs'.
+
+```
+for event in pygame.event.get():
+    if event.type == pygame.QUIT:
+        running = False
+    elif event.type == pygame.MOUSEBUTTONDOWN:
+        # Le joueur a cliqué sur la première zone de texte ?
+        if rect_joueur1.collidepoint(event.pos):
+            # Oui: on stocke cette information
+            dans_rect_joueur_1 = True
+        else:
+            # Non il a cliqué ailleurs: on stocke cette information
+            dans_rect_joueur_1 = False
+
+        # Le joueur a cliqué sur la deuxième zone de texte ?
+        if rect_joueur2.collidepoint(event.pos):
+            # Oui: on stocke cette information
+            dans_rect_joueur_2 = True
+        else:
+            # Non il a cliqué ailleurs: on stocke cette information
+            dans_rect_joueur_2 = False
+
+        # Le joueur a t'il cliqué sur le bouton 'OK' ?
+        if bouton_ok.collidepoint(event.pos):
+            # Oui: on stocke les prénoms dans la variable 'joueurs' (sauf s'il manque des prénoms')
+            if prenom1 != "" and prenom2 != "":
+                joueurs = [prenom1, prenom2]
+            # Comme notre variable 'joueurs' n'est plus vide, le jeu va passer à l'écran principal
+    elif event.type == pygame.KEYDOWN:
+        # Le joueur essaie t'il d'écrire au clavier dans la première zone de texte ?
+        if dans_rect_joueur_1:
+            if event.key == pygame.K_BACKSPACE:
+                # Si on appuie sur 'backspace', on efface une lettre
+                prenom1 = prenom1[:-1]
+            else:
+                # Sinon on ajoute la lettre tapée
+                prenom1 += event.unicode
+        # Le joueur essaie t'il d'écrire au clavier dans la deuxième zone de texte ?
+        elif dans_rect_joueur_2:
+            if event.key == pygame.K_BACKSPACE:
+                # Si on appuie sur 'backspace', on efface une lettre
+                prenom2 = prenom2[:-1]
+            else:
+                # Sinon on ajoute la lettre tapée
+                prenom2 += event.unicode
+
+# On affiche un fond d'écran blanc
+screen.fill(white)
+
+# on choisit une police de taille 36 pour écrire en grosses lettres
+font = pygame.font.Font(None, 36)
+# on crée une variable text_surf qui contiendra le texte "Entrez vos prénoms !"
+text_surf = font.render("Entrez vos prénoms !", True, text_color)
+# on définit une zone où afficher ce texte
+text_rect = pygame.Rect(250, 50, 100, 40)
+# enfin, on affiche le texte dans ce rectangle
+screen.blit(text_surf, text_rect)
+
+# on affiche une zone verte pour le premier prénom
+pygame.draw.rect(screen, green, rect_joueur1)
+# on crée une variable text_surf qui contiendra les lettres entrées au clavier
+text_surf = font.render(prenom1, True, text_color)
+text_rect = text_surf.get_rect(center=rect_joueur1.center)
+# enfin, on affiche le texte dans la zone correspondante
+screen.blit(text_surf, text_rect)
+
+# on affiche une zone verte pour le deuxième prénom
+pygame.draw.rect(screen, green, rect_joueur2)
+# on crée une variable text_surf qui contiendra les lettres entrées au clavier
+text_surf = font.render(prenom2, True, text_color)
+text_rect = text_surf.get_rect(center=rect_joueur2.center)
+# enfin, on affiche le texte dans la zone correspondante
+screen.blit(text_surf, text_rect)
+
+# Afficher le bouton OK:
+# on affiche un rectangle rouge de la taille de notre bouton
+pygame.draw.rect(screen, red, bouton_ok)
+# on choisit une police de taille 36 pour écrire en grosses lettres
+font = pygame.font.Font(None, 36)
+# on crée une variable text_surf qui contiendra le texte OK
+text_surf = font.render("OK", True, text_color)
+# on définit un que notre texte doit être centré sur notre bouton
+text_rect = text_surf.get_rect(center=bouton_ok.center)
+# enfin, on affiche le résultat
+screen.blit(text_surf, text_rect)
+```
+
+Si vous testez maintenant, vous verrez... que l'écran d'accueil ne s'affiche pas ! Pourquoi ? Parce que notre variable `joueurs` contient encore le nom 'TOTO', donc n'est pas vide, donc c'est l'écran principal qui s'affiche. Corrigez ca en enlevant 'TOTO' de la variable `joueurs`:
+
+```
+# Liste de joueurs
+joueurs = [] # Liste vide
+```
+
+Testez à nouveau. Cette fois l'écran d'accueil s'affiche, et en appuyant sur OK on passe à l'écran principal. Profitez-en pour regarder tout ce que fait ce gros morceau de code. C'est cette partie qu'il faudra modifier si vous voulez ajouter un troisième, quatrième ou cinquième joueur.
+
+### Affichage du prénom
+Bon, on a un écran qui demande le prénom mais ca n'a pas changé grand-chose à notre jeu pour le moment. Il est temps de s'occuper de ca. Nous allons faire les choses suivantes:
+* Dans l'écran de jeu principal, on affiche le premier prénom
+* On ajoute un bouton SUIVANT
+* Quand on clique sur SUIVANT, on ré-initialise tous les dés et on affiche le prénom suivant
+
+Pour l'ajout du prénom, c'est assez simple. Il nous faut une variable `joueur_actif` qui contiendra le numéro du joueur dont c'est le tour.
+
+Déclarez la variable `joueur_actif` là où vous avez déclaré `joueurs`, `prenom1` et `prenom2`
+```
+joueur_actif = 0
+```
+
+Les noms des joueurs sont stockés dans le tableau `joueurs`. On peut retrouver chacun des noms en cherchant dans le tableau. La première 'case' contient le premier prénom, la deuxième 'case' contient le deuxième prénom. La subtilité est qu'en python, on commence à compter les cases à partir de zéro. Donc `joueurs[0]` renvoie le premier prenom et `joueurs[1]` renvoie le deuxième prénom. Aussi, `joueurs[joueur_actif]` contiendra le prénom du joueur dont c'est le tour.
+
+Enfin, on affiche le nom du joueur sur l'écran principal: là où vous avez écrit le code qui affiche le bouton RELANCER, ajoutez ceci:
+
+```
+# Afficher le prénom du joueur dont c'est le tour:
+font = pygame.font.Font(None, 24)
+text_surf = font.render(f"Tour de: {joueurs[joueur_actif]}", True, text_color)
+text_rect = pygame.Rect(500, 20, 100, 50)
+screen.blit(text_surf, text_rect)
+```
+
+Tout ce qu'il reste à faire est d'ajouter un bouton SUIVANT qui termine le tour du joueur et qui commence le tour du joueur suivant.
+
+Pour commencer, en-dessous de là où vous avez déclaré la variable qui définit le bouton RELANCER `bouton_relancer = pygame.Rect(450, 50, 150, 50)
+`, déclarez le bouton SUIVANT. Ca nous servira à savoir si le joueur a cliqué dessus:
+```
+bouton_suivant =  pygame.Rect(610, 50, 150, 50)
+```
+
+Maintenant, en-dessous de là où vous avez affiché le joueur dont c'est le tour (ce que vous avez fait juste avant), ajoutez ce code pour afficher le bouton SUIVANT:
+
+```
+# Afficher le bouton SUIVANT:
+pygame.draw.rect(screen, button_color, bouton_suivant)
+font = pygame.font.Font(None, 36)
+text_surf = font.render("SUIVANT", True, text_color)
+text_rect = text_surf.get_rect(center=bouton_suivant.center)
+screen.blit(text_surf, text_rect)
+```
+
+Nous avons maintenant un magnifique bouton SUIVANT qui... ne fait rien, vu que nous n'avons pas encore géré le clic de la souris sur cette zone de l'écran !
+
+On va donc aller dans la partie du programme qui gère les clics de souris (`MOUSEBUTTONDOWN`) de notre écran principal: à la suite de ce code, qui regarde si on a cliqué sur le 8ème dé:
+
+```
+elif rect_de_8.collidepoint(event.pos):
+    # on a cliqué sur le dé numéro 8
+    if couleur_de_8 == green:
+        couleur_de_8 = red
+    elif couleur_de_8 == red:
+        couleur_de_8 = green
+```
+
+Ajoutez ce code, qui regarde si on a cliqué sur le bouton SUIVANT. Si c'est le cas, on fait deux choses: on mets dans `joueur_actif` le nom du joueur suivant, et on relance tous les dés (y compris les têtes de mort)
+
+```
+elif bouton_suivant.collidepoint(event.pos):
+# on a cliqué sur le bouton SUIVANT
+# on passe au joueur suivant
+joueur_actif = joueur_actif + 1
+if joueur_actif >= len(joueurs):
+    # on a fait tout le tour, on revient au début
+    joueur_actif = 0
+# on relance tous les dés et on les trie
+de_1 = lancer_de()
+de_2 = lancer_de()
+de_3 = lancer_de()
+de_4 = lancer_de()
+de_5 = lancer_de()
+de_6 = lancer_de()
+de_7 = lancer_de()
+de_8 = lancer_de()
+
+if de_1 == 6:
+    couleur_de_1 = black
+else:
+    couleur_de_1 = green
+if de_2 == 6:
+    couleur_de_2 = black
+else:
+    couleur_de_2 = green
+if de_3 == 6:
+    couleur_de_3 = black
+else:
+    couleur_de_3 = green
+if de_4 == 6:
+    couleur_de_4 = black
+else:
+    couleur_de_4 = green
+if de_5 == 6:
+    couleur_de_5 = black
+else:
+    couleur_de_5 = green
+if de_6 == 6:
+    couleur_de_6 = black
+else:
+    couleur_de_6 = green
+if de_7 == 6:
+    couleur_de_7 = black
+else:
+    couleur_de_7 = green
+if de_8 == 6:
+    couleur_de_8 = black
+else:
+  couleur_de_8 = green
+
+stockage = [
+    (de_1, couleur_de_1),
+    (de_2, couleur_de_2),
+    (de_3, couleur_de_3),
+    (de_4, couleur_de_4),
+    (de_5, couleur_de_5),
+    (de_6, couleur_de_6),
+    (de_7, couleur_de_7),
+    (de_8, couleur_de_8)
+]
+stockage.sort()
+(de_1, couleur_de_1), (de_2, couleur_de_2), (de_3, couleur_de_3), (de_4, couleur_de_4), (de_5, couleur_de_5), (de_6, couleur_de_6), (de_7, couleur_de_7), (de_8, couleur_de_8) = stockage
+```
+
+Ce code pourrait être optimisé ! Vous l'aurez peut-être constaté, toute la partie de relance des dés / mise à jour de la couleur du fond des dés / triage est du code que vous avez déjà écrit dans la 3ème mission. Pour faire plus propre, il serait judicieux de créer une fonction qui contient tout ce code, et d'appeler cette fonction chaque fois qu'on en a besoin au lieu de tout copier-coller à chaque fois.
+
+### Conserver et afficher le score total
+On peut maintenant terminer son tour et passer au suivant, mais les scores ne sont pas gardés en mémoire entre chaque tour ! Nous allons nous en occuper maintenant.
+
+Là où vous avez déclaré `joueurs`, ajoutez une variable qui va sauvegarder les scores de chaque joueur:
+```
+scores = []
+```
+
+Dans l'écran d'accueil, là où on stocke les prénoms (`joueurs = [prenom1, prenom2]`), on initialise les scores à zéro:
+```
+scores = [0, 0]
+```
+
+Là où on affiche le prénom, on affiche également le score. Remplacez cette ligne:
+```
+text_surf = font.render(f"Tour de: {joueurs[joueur_actif]}", True, text_color)
+```
+
+Par celle-ci:
+```
+text_surf = font.render(f"Tour de: {joueurs[joueur_actif]} - Score: {scores[joueur_actif]}", True, text_color)
+```
+
+Enfin, au moment où un joueur clique sur SUIVANT, on ajoute au score les points gagnés. Remplacez ce code:
+
+```
+# on a cliqué sur le bouton SUIVANT
+# on passe au joueur suivant
+joueur_actif = joueur_actif + 1
+if joueur_actif >= len(joueurs):
+    # on a fait tout le tour, on revient au début
+    joueur_actif = 0
+```
+
+Par celui-ci:
+
+```
+# on a cliqué sur le bouton SUIVANT
+# on stocke les points
+scores[joueur_actif] = scores[joueur_actif] + total
+# on passe au joueur suivant
+joueur_actif = joueur_actif + 1
+if joueur_actif >= len(joueurs):
+    # on a fait tout le tour, on revient au début
+    joueur_actif = 0
+```
+
+Et voilà le travail !
+
+![version 4](jeu4-1.png)
+
+![version 4](jeu4-2.png)
+
+|:warning: FAITES UNE SAUVEGARDE ! :warning:|
+|--------|
+|Faites une copie de `jeu.py` et renommez la copie `jeu4.py`. Si vous cassez votre code avec le cinquième module vous pourrez repartir d'un code qui fonctionne...|
+
+
+## 4ème mission: stopper son tour, score total, fin à 6000 points
 ## 5ème mission: jouer à plusieurs, fin de tour
 ## 6ème mission: l'île de la tête de mort
 ## 7ème mission: on affiche les cartes
@@ -559,4 +932,4 @@ Cette fois c'est terminé, vous pouvez être fier de vous !
 ## 9ème mission: jouer contre... l'ordinateur
 
 ## Félicitations !!!
-Vous avez codé le jeu de 1000 Sabords en python en juste quelques jours, c'est du bon boulot ! Vous pouvez l'améliorer en ajoutant de nouvelles cartes de votre invention, en rendant le jeu plus joli... ou tout simplement en y jouant avec vos amis !
+Vous avez codé le jeu de 1000 Sabords en python en juste quelques jours, c'est du bon boulot ! Vous pouvez l'améliorer en ajoutant de nouvelles cartes de votre invention, en rendant le jeu plus joli, en ajoutant des joueurs, on optimisant le code avec des fonctions... ou tout simplement y jouer avec vos amis !
