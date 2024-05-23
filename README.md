@@ -923,13 +923,10 @@ Et voilà le travail !
 |--------|
 |Faites une copie de `jeu.py` et renommez la copie `jeu4.py`. Si vous cassez votre code avec le cinquième module vous pourrez repartir d'un code qui fonctionne...|
 
-
-## 4ème mission: stopper son tour, score total, fin à 6000 points
-## 5ème mission: jouer à plusieurs, fin de tour
-## 6ème mission: l'île de la tête de mort
-## 7ème mission: on affiche les cartes
-## 8ème mission: on code les règles spéciales
-## 9ème mission: jouer contre... l'ordinateur
+## 5ème mission: fin de partie, l'île de la tête de mort
+## 6ème mission: on affiche les cartes
+## 7ème mission: on code les règles spéciales
+## 8ème mission: jouer contre... l'ordinateur
 
 ## Félicitations !!!
 Vous avez codé le jeu de 1000 Sabords en python en juste quelques jours, c'est du bon boulot ! Vous pouvez l'améliorer en ajoutant de nouvelles cartes de votre invention, en rendant le jeu plus joli, en ajoutant des joueurs, on optimisant le code avec des fonctions... ou tout simplement y jouer avec vos amis !
