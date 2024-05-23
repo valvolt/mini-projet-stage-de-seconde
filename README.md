@@ -924,6 +924,421 @@ Et voilà le travail !
 |Faites une copie de `jeu.py` et renommez la copie `jeu4.py`. Si vous cassez votre code avec le cinquième module vous pourrez repartir d'un code qui fonctionne...|
 
 ## 5ème mission: fin de partie, l'île de la tête de mort
+Au programme: terminer le jeu une fois qu'on atteint 6000 points et implémenter le cas spécial de l'île de la tête de mort.
+
+### L'île de la tête de mort
+Les règles disent que si un joueur obtient 4 têtes de mort ou plus lors de son premier lancer de dé, il est envoyé sur l'île de la tête de mort, où il peut faire perdre des points à tous les autres joueurs. C'est le seul cas de figure dans 1000 Sabords où il est possible de perdre des points.
+
+Sur l'île de la tête de mort, on doit relancer tous les dés restants. Tant qu'on continue à obtenir des têtes de mort, on relance. Si on relance mais qu'on n'obtient pas de tête de mort supplémentaire, alors le tour s'arrête, et tous les joueurs adversent perdent 100 points par tête de mort.
+
+Nous allons implémenter ca par étapes.
+
+#### 4 têtes de mort au premier lancer
+Première étape, tester si lors du premier lancer on a obtenu 4 têtes de mort ou plus. Si c'est le cas, on entre dans un mode de jeu spécial où on fait perdre des points. Pour que le programme sache si l'on suit les règles normales ou les règles de l'île de la tête de mort, on va ajouter une variable dans laquelle on stockera cette information.
+
+Nous allons devoir tester si on va sur l'île, là où on fait le premier jet des 8 dés, c'est à dire à cet endroit:
+
+```
+# Initialisation de la face du dé (on le lance une fois)
+de_1 = lancer_de()
+de_2 = lancer_de()
+de_3 = lancer_de()
+de_4 = lancer_de()
+de_5 = lancer_de()
+de_6 = lancer_de()
+de_7 = lancer_de()
+de_8 = lancer_de()
+```
+
+On va ajouter ce code, qui va simplement compter les têtes de mort et mettre la variable à `True` si on en a 4 ou plus et a `False` sinon.
+
+```
+# Sur l'île de la tête de mort?
+if des_face_6() >= 4:
+  ile_de_la_tete_de_mort = True
+else:
+  ile_de_la_tete_de_mort = False
+```
+
+Le problème est que ce code doit être recopié partout où on relance tous les dés. Il y a un deuxième endroit où l'on fait ca: quand on change de joueur. Aussi, recherchez ce deuxième endroit et ajoutez là aussi le code qui mets à jour la variable `ile_de_la_tete_de_mort`.
+
+Nous allons maintenant afficher à l'écran une image qui représente cette île, et qui apparaîtra quand on a 4 têtes de mort ou plus lors du premier tirage.
+
+Cherchez sur Internet une image pour représenter l'île de la tête de mort. Sauvegardez cette image là où vous avez déjà stocké les autres images, et renommez-la. Dans le code ci-dessous, l'image s'appelle `ile.png`, si votre image a un nom différent il faudra changer le code en fonction.
+
+Là où vous avez mis le code pour afficher le bouton SUIVANT, ajoutez ce code qui affichera l'image, mais uniquement si le joueur est sur l'île de la tête de mort:
+
+```
+# Si on est sur l'île de la tête de mort, on l'affiche à l'écran
+if ile_de_la_tete_de_mort == True:
+  screen.blit(pygame.transform.scale(pygame.image.load('ile.png'), (150, 250)), (40, 200))
+```
+
+Pour tester, il suffit de cliquer plusieurs fois sur le bouton SUIVANT jusqu'à ce qu'un tour commence avec 4 têtes de mort ou plus. Si l'image apparaît, c'est que tout fonctionne :)
+
+Bon, c'est cool d'afficher l'image mais maintenant il faut s'attaquer aux règles spéciales pour le score et les dés:
+* Comme on doit toujours relancer tous les dés restants, on doit désactiver le blocage de dé (le passage au bord rouge)
+* Quand on appuie sur RELANCER, il faut stopper le tour si on n'obtient pas de tête de mort
+* Quand on stoppe le tour, il faut compter le nombre de dés tête de mort, multiplier le résultat par 100 et soustraire le résultat du score des autres joueurs.
+* Au lieu d'afficher "OH NON, C'EST PERDU !" on veut afficher "ILE DE LA TETE DE MORT"
+
+Souvenez-vous, le code qui contrôle le changement de couleur quand on clique sur le premier dé est celui-ci:
+
+```
+elif rect_de_1.collidepoint(event.pos):
+    # on a cliqué sur le dé numéro 1
+    if couleur_de_1 == green:
+        couleur_de_1 = red
+    elif couleur_de_1 == red:
+        couleur_de_1 = green
+```
+
+On va garder ce code, mais l'exécuter uniquement si on n'est pas sur l'île de la tête de mort, en le remplacant par ce code:
+
+```
+elif rect_de_1.collidepoint(event.pos):
+    # on a cliqué sur le dé numéro 1
+    if ile_de_la_tete_de_mort == False:
+      # On n'est pas sur l'île, on permet de bloquer le dé
+      if couleur_de_1 == green:
+          couleur_de_1 = red
+      elif couleur_de_1 == red:
+          couleur_de_1 = green
+```
+
+Si on est sur l'île, alors la variable `ile_de_la_tete_de_mort` sera égale à `True`, donc le code qui permet de changer la couleur sera ignoré. Par conséquence, cliquer sur le dé 1 ne fera rien.
+
+Remplacez de la même manière le code pour les 7 autres dés.
+
+Pour le bouton RELANCER, ca se passe au niveau de la ligne de code qui contrôle si on a appuyé sur le bouton: `if bouton_relancer.collidepoint(event.pos):`
+
+On va utiliser les règles normales (le code déjà écrit) si on n'est pas sur l'île, et les règles spéciales si on y est.
+
+En dessous de `if bouton_relancer.collidepoint(event.pos):`, ajoutez le code suivant pour préparer le terrain:
+
+```
+# à cet endroit dans le code, on sait que la souris a été cliquée. On teste pour savoir si on a cliqué sur le bouton RELANCER
+if bouton_relancer.collidepoint(event.pos):
+  if ile_de_la_tete_de_mort == False:
+    # NOUS ALLONS METTRE LES REGLES NORMALES ICI
+    pass
+  else:
+    # NOUS ALLONS ECRIRE LES REGLES SPECIALES ICI
+    pass
+```
+
+Vous avez probablement remarqué, on utilise la même technique que tout à l'heure, avec la commande `pass` pour dire qu'on ne fait rien. Maintenant, prenez le code qui est en-dessous (à partir de la ligne `# à cet endroit dans le code, on sait qu'on a cliqué sur le bouton RELANCER. Reste à assigner une nouvelle face à notre dé` et jusqu'à la ligne qui **précède** `elif rect_de_1.collidepoint(event.pos):` et mettez-le à la place des lignes:
+```
+    # NOUS ALLONS METTRE LES REGLES NORMALES ICI
+    pass
+```
+
+N'oubliez pas de ré-indenter correctement. Vérifiez que le jeu fonctionne toujours correctement.
+
+Une fois vous être assuré que rien n'est cassé, remplacez ces lignes:
+```
+    # NOUS ALLONS ECRIRE LES REGLES SPECIALES ICI
+    pass
+
+```
+par les règles spéciales, à savoir:
+```
+# Nous sommes sur l'île de la tête de mort.
+# On compte combien de dés tête de mort on a
+tetes_de_mort = des_face_6()
+# On relance les dés verts
+if couleur_de_1 == green:
+    de_1 = lancer_de()  # Relancer le dé
+if de_1 == 6:
+    couleur_de_1 = black
+if couleur_de_2 == green:
+    de_2 = lancer_de()  # Relancer le dé
+if de_2 == 6:
+    couleur_de_2 = black
+if couleur_de_3 == green:
+    de_3 = lancer_de()  # Relancer le dé
+if de_3 == 6:
+    couleur_de_3 = black
+if couleur_de_4 == green:
+    de_4 = lancer_de()  # Relancer le dé
+if de_4 == 6:
+    couleur_de_4 = black
+if couleur_de_5 == green:
+    de_5 = lancer_de()  # Relancer le dé
+if de_5 == 6:
+    couleur_de_5 = black
+if couleur_de_6 == green:
+    de_6 = lancer_de()  # Relancer le dé
+if de_6 == 6:
+    couleur_de_6 = black
+if couleur_de_7 == green:
+    de_7 = lancer_de()  # Relancer le dé
+if de_7 == 6:
+    couleur_de_7 = black
+if couleur_de_8 == green:
+    de_8 = lancer_de()  # Relancer le dé
+if de_8 == 6:
+    couleur_de_8 = black
+# On stocke le contenu des variables dans un tableau
+stockage = [
+    (de_1, couleur_de_1),
+    (de_2, couleur_de_2),
+    (de_3, couleur_de_3),
+    (de_4, couleur_de_4),
+    (de_5, couleur_de_5),
+    (de_6, couleur_de_6),
+    (de_7, couleur_de_7),
+    (de_8, couleur_de_8)
+]
+# On trie dans l'ordre croissant
+stockage.sort()
+# On ré-assigne les valeurs triées aux variables
+(de_1, couleur_de_1), (de_2, couleur_de_2), (de_3, couleur_de_3), (de_4, couleur_de_4), (de_5, couleur_de_5), (de_6, couleur_de_6), (de_7, couleur_de_7), (de_8, couleur_de_8) = stockage
+# A t'on au moins une tête de mort de plus ?
+if des_face_6() > tetes_de_mort:
+    # On a une tête de mort de plus, rien de spécial, on peut continuer à relancer
+    pass
+else:
+    # On n'a pas obtenu de nouvelle tête de mort, il faut empêcher de relancer
+    # Pour cela, on mets tous les bords de couleur à 'black'
+    couleur_de_1 = black
+    couleur_de_2 = black
+    couleur_de_3 = black
+    couleur_de_4 = black
+    couleur_de_5 = black
+    couleur_de_6 = black
+    couleur_de_7 = black
+    couleur_de_8 = black
+```
+
+Au bout d'un moment, le joueur ne pourra plus relancer. La seule option restante sera d'appuyer sur SUIVANT. On va ajouter des règles spéciales pour le calcul du score.
+
+Sous la ligne `elif bouton_suivant.collidepoint(event.pos):`, rajoutez le test pour savoir si on est dans le cas spécial:
+
+```
+elif bouton_suivant.collidepoint(event.pos):
+  if ile_de_la_tete_de_mort == False:
+    # NOUS ALLONS METTRE LES REGLES NORMALES ICI
+    pass
+  else:
+    # NOUS ALLONS ECRIRE LES REGLES SPECIALES ICI
+    pass
+```
+
+Il n'y a que le calcul du score à déplacer: ces trois lignes
+
+```
+# on a cliqué sur le bouton SUIVANT
+# on stocke les points
+scores[joueur_actif] = scores[joueur_actif] + total
+```
+
+doivent être enlevées, pour être mises à la place des lignes
+```
+    # NOUS ALLONS METTRE LES REGLES NORMALES ICI
+    pass
+```
+
+Quant aux règles spéciales de calcul de score, remplacez les deux lignes
+```
+    # NOUS ALLONS ECRIRE LES REGLES SPECIALES ICI
+    pass
+```
+
+par le code suivant:
+```
+# on enlève à chaque autre joueur 100 points par tête de mort
+# On parcours tous les scores
+for i in range(len(scores)):
+    # si ce n'est pas le score du joueur actif, on enlève les points
+    if i != joueur_actif:
+        scores[i] = scores[i] - (100 * des_face_6())
+        # on remet à zéro si on est tombé dans le négatif
+        if scores[i] < 0:
+          scores[i] = 0
+```
+
+Ce code est un peu compliqué à tester, parce que ce n'est pas souvent que l'on arrive sur l'île de la tête de mort. Quand on veut tester le code, on peut 'tricher':
+
+Après les lignes où on tire les dés au hazard:
+```
+# Initialisation de la face du dé (on le lance une fois)
+de_1 = lancer_de()
+de_2 = lancer_de()
+de_3 = lancer_de()
+de_4 = lancer_de()
+de_5 = lancer_de()
+de_6 = lancer_de()
+de_7 = lancer_de()
+de_8 = lancer_de()
+```
+
+On peut forcer les dés à être sur la face que l'on veut en ajoutant par exemple les valeurs suivantes:
+
+```
+# CODE DE TEST
+de_1 = 6 # tete de mort
+de_2 = 6 # tete de mort
+de_3 = 6 # tete de mort
+de_4 = 6 # tete de mort
+de_5 = 1 # diamant
+de_6 = 1 # diamant
+de_7 = 1 # diamant
+de_8 = 1 # diamant
+```
+
+Et hop, le premier joueur aura toujours 4 diamants et 4 têtes de mort :)
+
+Par contre n'oubliez pas de retirer ce code de test après avoir testé pour que le jeu reste jouable !
+
+C'est presque fini: il reste à remplacer le message "OH NON !".
+
+Remplacez ce code:
+```
+if des_face_6() >= 3:
+    total = 0
+    scores_text = [
+        f"OH NON, C'EST PERDU !",
+        f"TOTAL: {total} points"
+    ]
+```
+
+par celui-ci:
+```
+if des_face_6() >= 3:
+    if ile_de_la_tete_de_mort == False:
+      total = 0
+      scores_text = [
+          f"OH NON, C'EST PERDU !",
+          f"TOTAL: {total} points"
+      ]
+    else:
+      scores_text = [
+          f"SuR L'iLe De La TêTe De MoRT...",
+          f"MALUS ADVERSAIRE: {des_face_6() * 100} points"
+      ]
+```
+
+C'est tout pour cette partie. Profitons-en pour gérer la fin de partie
+
+### Fin de partie
+Les règles du jeu disent que lorsqu'un joueur atteint 6000 points, ce lance le dernier tour. Si à la fin de ce dernier tour personne n'a 6000 points, alors on reprend le jeu normalement.
+
+Ajoutez une variable `dernier_tour` et une variable `fin_du_jeu` là où vous avez initialisé les autres variables.
+
+```
+# sera mis à vrai quand on sera dans le dernier tour
+dernier_tour = False
+# sera mis à vrai quand le dernier tour sera terminé
+fin_du_jeu = False
+```
+
+On lance le dernier tour si un joueur atteint 6000 points. On fait ce test au moment de mettre à jour le score, c'est à dire quand on a cliqué sur le bouton SUIVANT. Pour être plus précis, on va s'intéresser à cette ligne:
+
+```
+scores[joueur_actif] = scores[joueur_actif] + total
+```
+On regarde si le joueur a 6000 points ou plus. Si oui on déclenche le dernier tour. Ajoutez ce code juste en-dessous de la ligne ci-dessus:
+
+```
+# Si le joueur a 6000 points, on déclenche le dernier tour
+if scores[joueur_actif] >= 6000:
+  dernier_tour = True
+```
+
+On a déjà du code qui regarde quand le joueur suivant doit être le premier joueur - ce qui correspond à un tour de jeu complet. Il suffit donc de mettre à `True` la variable `fin_du_jeu` quand le dernier tour a été lancé et qu'un joueur a 6000 points on plus. Si ce n'est plus le cas (par exemple parce que le joueur a perdu des points à cause de l'île de la tête de mort) alors on annule le dernier tour.
+
+Remplacez donc ce code:
+
+```
+# on passe au joueur suivant
+joueur_actif = joueur_actif + 1
+if joueur_actif >= len(joueurs):
+    # on a fait tout le tour, on revient au début
+    joueur_actif = 0
+```
+
+par celui-ci:
+
+```
+# on passe au joueur suivant
+joueur_actif = joueur_actif + 1
+if joueur_actif >= len(joueurs):
+    # on a fait tout le tour, on revient au début
+    joueur_actif = 0
+    if dernier_tour == True:
+      # on vient de terminer le dernier tour.
+      # on remets à False des fois que ce soit une fausse alerte
+      dernier_tour = False
+      # a t'on toujours un joueur avec 6000 points?
+      for score in scores:
+        # on regarde chaque score un par un
+        if score >= 6000:
+          # on a trouvé un haut score, on arrête le jeu
+          fin_du_jeu = True
+```
+
+Il reste une dernière chose à faire: quand la variable `fin_du_jeu` est `True`, au lieu d'afficher l'écran normal on affiche l'écran de fin.
+
+Pour cet écran de fin, on va simplement afficher la même chose que l'écran d'accueil, mais avec les scores finaux au lieu de demander les prénoms.
+
+On va tester si on est à la fin du jeu au niveau du code où on teste si on doit afficher l'écran d'accueil, c'est à dire au niveau de ces lignes de code:
+
+```
+# A t'on au moins un joueur? On calcule la 'longueur' de notre tableau de joueurs
+if len(joueurs) >= 1:
+```
+
+Avant même de tester si on a un joueur ou plus, on va tester si on a terminé, et on va afficher nos scores.
+
+Juste avant les lignes précédentes, ajoutez le code suivant:
+```
+for event in pygame.event.get():
+    if event.type == pygame.QUIT:
+        running = False
+
+screen.fill(white)
+
+font = pygame.font.Font(None, 36)
+text_surf = font.render("Partie Terminée", True, text_color)
+text_rect = pygame.Rect(250, 50, 100, 40)
+screen.blit(text_surf, text_rect)
+
+# prénom et score du premier joueur
+pygame.draw.rect(screen, green, rect_joueur1)
+text_surf = font.render(f"{prenom1} - TOTAL: {scores[0]}", True, text_color)
+text_rect = text_surf.get_rect(center=rect_joueur1.center)
+screen.blit(text_surf, text_rect)
+
+# prénom et score du deuxième joueur
+pygame.draw.rect(screen, green, rect_joueur2)
+text_surf = font.render(f"{prenom2} - TOTAL: {scores[1]}", True, text_color)
+text_rect = text_surf.get_rect(center=rect_joueur2.center)
+screen.blit(text_surf, text_rect)
+```
+
+Dernier point: comme on a ajouté une nouvelle clause `if`, le `if` précédent doit devenir un `else if` (`elif` en python) sinon l'écran de jeu normal viendra s'afficher par-dessus l'écran de fin de jeu.
+
+Aussi, changez cette ligne:
+```
+if len(joueurs) >= 1:
+```
+par:
+```
+elif len(joueurs) >= 1:
+```
+
+Bravo d'être arrivé jusqu'ici - vous avez maintenant un jeu entièrement jouable, où il ne manque que les cartes !
+
+![version 5](jeu5-1.png)
+
+![version 6](jeu5-2.png)
+
+|:warning: FAITES UNE SAUVEGARDE ! :warning:|
+|--------|
+|Faites une copie de `jeu.py` et renommez la copie `jeu5.py`. Si vous cassez votre code avec le sixième module vous pourrez repartir d'un code qui fonctionne...|
+
+
 ## 6ème mission: on affiche les cartes
 ## 7ème mission: on code les règles spéciales
 ## 8ème mission: jouer contre... l'ordinateur
