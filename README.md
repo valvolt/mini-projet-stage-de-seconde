@@ -1332,7 +1332,7 @@ Bravo d'être arrivé jusqu'ici - vous avez maintenant un jeu entièrement jouab
 
 ![version 5](jeu5-1.png)
 
-![version 6](jeu5-2.png)
+![version 5](jeu5-2.png)
 
 |:warning: FAITES UNE SAUVEGARDE ! :warning:|
 |--------|
@@ -1340,6 +1340,184 @@ Bravo d'être arrivé jusqu'ici - vous avez maintenant un jeu entièrement jouab
 
 
 ## 6ème mission: on affiche les cartes
+Le jeu est déjà bien jouable tel quel mais il sera encore mieux si on ajoute les cartes et les règles spéciales associées !
+
+Pour commencer, cherchez des images sur Internet qui serviront à illustrer ces cartes. Nous avons besoin des cartes suivantes:
+* Pirate (double le score)
+* Diamant (ajoute un diamant)
+* Pièce d'or (ajoute une pièce d'or)
+* Perroquet/singe (combine les perroquets et singes en une seule catégorie)
+* Tête de mort (ajoute une tête de mort)
+* Deux têtes de mort (ajoute deux têtes de mort)
+* Coffre ('sauve' les dés en cas d'obtention de 3 têtes de mort)
+* Bateau pirate: niveau 2 (nécessite 2 sabres pour le battre, apporte 200 points)
+* Bateau pirate: niveau 3 (nécessite 3 sabres pour le battre, apporte 500 points)
+* Bateau pirate: niveau 4 (nécessite 4 sabres pour le battre, apporte 1000 points)
+* Gardienne: permet de relancer 1 tête de mort
+
+Pour le diamant, la pièce d'or et la tête de mort, on peut reprendre les images que l'on a déjà pour les dés. Il suffira de les afficher en plus grand. Par contre nous avons besoin de toutes les autres cartes.
+
+### Trouver et modifier des images
+
+Les images vont apparaître au format 'carte à jouer', plus hautes que larges, donc. Si vous prenez des images plus larges que hautes, elles vont apparaître écrasées. Ici trois options au choix:
+* vous trouvez des images déjà au format carte à jouer
+* vous prenez des images de taille classique, et vous changerez l'affichage dans le code pour qu'elles ne soient pas écrasées
+* vous prenez des images de taille classique, et vous les modifiez avec un logiciel de dessin pour leur donner un aspect carte à jouer. Le site [picresize.com](https://picresize.com/fr/edit) peut vous aider. Il y a une traduction étrange :) en anglais il faut utiliser la fonction 'crop', qui veut dire 'recadrer' pour une image, mais aussi 'culture' quand on parle de jardinage. Devinez par quel mot le site web a choisi de traduire ce mot ? :)
+
+Téléchargez les images adéquates et renommez-les dans le répertoire de votre jeu (avec les autres images). Dans le code, nous utiliserons les noms suivants, si vous ne renommez pas de la même manière il vous faudra adapter le code:
+
+```
+pirate.png
+diamant.png (existe déjà)
+piece_or.png (existe déjà)
+perroquet_singe.png
+tete_de_mort.png (existe déjà)
+2_tetes_de_mort.png
+coffre.png
+bateau_2.png
+bateau_3.png
+bateau_4.png
+gardienne.png
+```
+
+Pour les bateaux, il pourrait être utile d'afficher le nombre de sabres et la valeur en points. Utilisez l'outil suivant pour ajouter du texte sur vos cartes bateau: [addtext.com](https://addtext.com)
+
+Vous pouvez mettre le texte de votre choix, et même des emoji pour faire des dessins d'épée ! Pour les emoji, vous pouvez en trouver sur [emojipedia](https://emojipedia.org/crossed-swords). Cliquez sur 'Copy' pour mettre l'emoji dans votre presse-papier, et faites CTRL-V pour le coller dans la zone de texte de votre image chargée sur addtext.com.
+
+Vous pouvez ajouter du texte comme celui-ci pour bateau_4:
+
+:hocho::hocho::hocho::hocho:
+
+**1000 points**
+
+### Charger les cartes dans le jeu
+Lors de votre première mission, vous avez créé un dictionnaire qui contient 6 images, chacune associée à une face de dé:
+
+```
+# dictionnaire qui associe une 'clé' (nombre de 1 à 6) à une 'valeur' (nom de l'image)
+images = {
+    1: pygame.image.load('diamant.png'),
+    2: pygame.image.load('piece_or.png'),
+    3: pygame.image.load('singe.png'),
+    4: pygame.image.load('perroquet.png'),
+    5: pygame.image.load('sabre.png'),
+    6: pygame.image.load('tete_de_mort.png')
+}
+```
+
+Nous allons créer un autre dictionnaire, qui contiendra nos cartes. En dessous du dictionnaire `images`, ajoutez le dictionnaire `cartes` défini par le code suivant:
+
+```
+# dictionnaire qui associe une 'clé' (nom de la carte) à une 'valeur' (nom de l'image)
+cartes = {
+    "pirate": pygame.image.load('pirate.png'),
+    "diamant": pygame.image.load('diamant.png'),
+    "piece_or": pygame.image.load('piece_or.png'),
+    "perroquet_singe": pygame.image.load('perroquet_singe.png'),
+    "tete_de_mort": pygame.image.load('tete_de_mort.png'),
+    "2_tetes_de_mort": pygame.image.load('2_tetes_de_mort.png'),
+    "coffre": pygame.image.load('coffre.png'),
+    "bateau_2": pygame.image.load('bateau_2.png'),
+    "bateau_3": pygame.image.load('bateau_3.png'),
+    "bateau_4": pygame.image.load('bateau_4.png'),
+    "gardienne": pygame.image.load('gardienne.png'),
+}
+```
+
+Maintenant, nous allons préparer le jeu de cartes proprement dit. Il va s'agir d'un tableau qui contient toutes les cartes. Il est possible de mettre plusieurs cartes identiques, on aura plus de chances de les tirer au sort.
+
+Ajoutez le code suivant qui définit notre jeu de cartes, juste en-dessous du code de vos dictionnaires:
+
+```
+jeu_de_cartes = []
+
+# On ajoute des cartes au jeu de cartes, type par type
+jeu_de_cartes.extend(["pirate"] * 2)
+jeu_de_cartes.extend(["diamant"] * 5)
+jeu_de_cartes.extend(["piece_or"] * 5)
+jeu_de_cartes.extend(["perroquet_singe"] * 5)
+jeu_de_cartes.extend(["tete_de_mort"] * 3)
+jeu_de_cartes.extend(["2_tetes_de_mort"] * 3)
+jeu_de_cartes.extend(["coffre"] * 4)
+jeu_de_cartes.extend(["bateau_2"] * 3)
+jeu_de_cartes.extend(["bateau_3"] * 2)
+jeu_de_cartes.extend(["bateau_4"] * 1)
+jeu_de_cartes.extend(["gardienne"] * 2)
+```
+
+On peut utiliser deux stratégies pour piocher une carte. Une des stratégies est de mélanger le jeu de cartes (c'est à dire, mettre le contenu du tableau `jeu_de_cartes` dans un ordre aléatoire, puis 'piocher' les cartes dans l'ordre du tableau). Une autre stratégie, plus simple à implémenter, est de simplement choisir un nombre au hasard et de prendre dans le tableau la carte correspondante.
+
+Avec cette seconde stratégie, il sera en théorie possible de tomber 3 fois de suite sur la carte 'pirate' alors qu'avec la première stratégie il faudra faire tout le tour des cartes avant de retomber sur la carte 'pirate', mais dans la pratique ca ne change pas grand-chose donc nous allons aller au plus simple.
+
+Ajoutez une variable `carte_active` qui contiendra la carte en cours d'utilisation.
+```
+carte_active = -1
+```
+Il n'y a pas de carte '-1', ce numéro sera changé avec un numéro valable (entre 0 pour la première carte et 34 pour la 35ème carte). Ce -1 est mis exprès car si on oublie de changer la valeur, cela créera un message d'erreur qui nous rappellera de notre oubli !
+
+De la même manière que vous avons écrit une fonction `lancer_de`, ajoutez en dessous une fonction `piocher_carte` qui renvoie une carte au hasard.
+
+```
+# Fonction pour piocher une carte
+def piocher_carte():
+    # on tire un numéro entre 0 (première carte) et len(jeu_de_cartes) -1
+    # (la longueur (length) de notre tableau, soir le nombre total de cartes,
+    # moins 1 pour tomber sur le numéro 34 au maximum)
+    numero = random.randint(0, len(jeu_de_cartes) -1)
+    # on renvoie la carte qui correspond
+    return jeu_de_cartes[numero]
+```
+
+### Afficher la carte
+Il nous reste à afficher, au début de chaque tour, la carte tirée au hasard. Il faudra donc écrire le code suivant deux fois: une fois au démarrage, et une fois lorsque l'on change de joueur.
+
+```
+# on pioche une carte
+carte_active = piocher_carte()
+```
+
+Ce code doit être écrit juste après que l'on ait lancé les dés, soit après le code suivant:
+
+```
+# Initialisation de la face du dé (on le lance une fois)
+de_1 = lancer_de()
+de_2 = lancer_de()
+de_3 = lancer_de()
+de_4 = lancer_de()
+de_5 = lancer_de()
+de_6 = lancer_de()
+de_7 = lancer_de()
+de_8 = lancer_de()
+```
+
+Attention, trouvez dans votre code les deux fois où vous faites cette initialisation des faces des dés, et les deux fois, ajoutez le code qui fait piocher une carte !
+
+
+Pour l'affichage en lui-même, nous allons afficher notre carte juste à côté de là ou peut apparaître l'île de la tête de mort. On pourrait faire apparaître la carte par dessus mais dans certains cas nous allons avoir besoin de voir la carte et le dessin de l'île...
+
+En dessous du code suivant:
+```
+# Si on est sur l'île de la tête de mort, on l'affiche à l'écran
+if ile_de_la_tete_de_mort == True:
+  screen.blit(pygame.transform.scale(pygame.image.load('ile.png'), (150, 250)), (40, 200))
+```
+
+ajoutez ceci:
+
+```
+# on affiche la carte à l'écran
+screen.blit(pygame.transform.scale(cartes[carte_active], (150, 250)), (200, 200))
+```
+
+Et voilà le travail ! Vous avez maintenant une carte qui s'affiche à chaque tour de jeu. C'est joli. Et ca ne sert à rien pour le moment, mais ce sera pour la prochaine mission !
+
+![version 6](jeu-6.png)
+
+|:warning: FAITES UNE SAUVEGARDE ! :warning:|
+|--------|
+|Faites une copie de `jeu.py` et renommez la copie `jeu5.py`. Si vous cassez votre code avec le sixième module vous pourrez repartir d'un code qui fonctionne...|
+
+
 ## 7ème mission: on code les règles spéciales
 ## 8ème mission: jouer contre... l'ordinateur
 
