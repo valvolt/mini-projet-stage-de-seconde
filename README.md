@@ -399,7 +399,7 @@ scores_text = [
 # boucle qui prend chaque ligne de texte et qui l'affiche
 for i, line in enumerate(scores_text):
     text_surf = font.render(line, True, text_color)
-    screen.blit(text_surf, (400, 300 + i * 30))
+    screen.blit(text_surf, (400, 270 + i * 30))
 ```
 
 Le problème de ce code est qu'il marque toujours qu'il y a 1 diamant, 2 pièces d'or et un total de 300 points. Il faut donc maintenant calculer les vraies valeurs de ces variables.
@@ -1517,9 +1517,813 @@ Et voilà le travail ! Vous avez maintenant une carte qui s'affiche à chaque to
 |--------|
 |Faites une copie de `jeu.py` et renommez la copie `jeu5.py`. Si vous cassez votre code avec le sixième module vous pourrez repartir d'un code qui fonctionne...|
 
-
 ## 7ème mission: on code les règles spéciales
+Voici les règles à implémenter afin de rendre le jeu plus intéressant...
+
+* carte pirate: le score est doublé
+* carte diamant: ajoute un diamant. Si tous les dés sont aussi des diamants, la partie est gagnée
+* carte pièce d'or: ajoute une pièce d'or. Si tous les dés sont aussi des pièces d'or, la partie est gagnée
+* carte perroquet / singe: les perroquets et les singes sont comptés comme une seule catégorie
+* carte tête de mort: ajoute une tête de mort
+* carte avec deux têtes de mort: ajoute deux têtes de mort
+* carte coffre: les points des dés bloqués ne sont pas perdus en cas de 3 têtes de mort
+* carte bateau: empêche d'aller sur l'île de la tête de mort. Doit être battu avec des dés 'sabre'. Si battu, le bonus du bateau s'ajoute. Si perdu, le bonus de bateau est retiré du score.
+* carte gardienne: permet de relancer une tête de mort une fois.
+
+Nous allons implémenter ces règles en commencant par le plus simple (le diamant) et en terminant par le plus compliqué (les bateaux)
+
+### Le diamant
+Comme la carte diamant fonctionne comme un dé, nous allons ajouter un neuvième dé qui sera compté avec les autres. Mais au lieu de tirer au hasard, on lui donnera toujours la valeur de 0 (qui ne correspond à aucune de nos 6 faces), sauf quand on tire une carte diamant, auquel cas on lui donnera la valeur de 1 (la face du diamant).
+
+#### Un neuvième dé
+
+Aux deux endroits où on lance les dés:
+```
+# Initialisation de la face du dé (on le lance une fois)
+de_1 = lancer_de()
+de_2 = lancer_de()
+de_3 = lancer_de()
+de_4 = lancer_de()
+de_5 = lancer_de()
+de_6 = lancer_de()
+de_7 = lancer_de()
+de_8 = lancer_de()
+```
+Initialisez le neuvième dé à zéro:
+```
+de_9 = 0
+```
+
+À l'endroit où on compte les diamants, c'est à dire: dans la fonction `des_face_1`, ajoutez les deux lignes de code qui ajoutent 1 si `de_9` est égal à 1 en vous inspirant du code écrit pour les autres dés.
+
+#### Activer la carte
+
+Nous devons passer le dé à 1 quand on tire la carte diamant. Aux deux endroits où vous avez testé si on a tiré la carte pirate, ajoutez ce code:
+
+Aux deux endroits où vous avez écrit ceci:
+```
+# on pioche une carte
+carte_active = piocher_carte()
+```
+
+Ajoutez ceci:
+```
+# a t'on pioché un diamant ?
+if carte_active == "diamant":
+  # on active le 9e dé sur la face 1 (diamant)
+  de_9 = 1
+```
+
+
+#### 9 diamants
+Il ne reste plus qu'à implémenter la règle disant que si on a 9 diamants, on gagne la partie. Pour simplifier, si on a 9 diamants on va simplement donner un score très grand, ce qui va terminer la partie.
+
+Après la ligne `total = (100 * mult_diamants) + (100 * mult_pieces) + (100 * mult_serie_3) + (200 * mult_serie_4) + (500 * mult_serie_5) + (1000 * mult_serie_6) + (2000 * mult_serie_7) + (4000 * mult_serie_8) + (500 * mult_tresor)` qui calcule le score, nous allons regarder si on a 9 diamants, auquel cas, quel que soit le score, on le remplace par 999999, ce qui devrait être amplement suffisant pour remporter la partie.
+
+```
+if mult_diamants == 9:
+    # Neuf diamants ! La partie est gagnée
+    total = 99999
+```
+
+### La pièce d'or
+La pièce d'or fonctionne exactement comme le diamant. À vous de jouer !
+
+#### Un neuvième dé
+Pas besoin de rajouter un nouveau dé, on va réutiliser le 9e dé pour la pièce d'or.
+
+À l'endroit où on compte les pièces d'or, c'est à dire: dans la fonction `des_face_2`, ajoutez les deux lignes de code qui ajoutent 1 si `de_9` est égal à 2 en vous inspirant du code écrit pour les autres dés.
+
+#### Activer la carte
+
+Nous devons passer le dé à 2 quand on tire la carte piece_or. Aux deux endroits où vous avez testé si on a tiré la carte diamant (`# a t'on pioché un diamant ?`), testez de la même manière si on a pioché la carte `"piece_or"`, auquel cas mettez `de_9` sur la face 2
+
+#### 9 pièces d'or
+
+Après la ligne `total = (100 * mult_diamants) + (100 * mult_pieces) + (100 * mult_serie_3) + (200 * mult_serie_4) + (500 * mult_serie_5) + (1000 * mult_serie_6) + (2000 * mult_serie_7) + (4000 * mult_serie_8) + (500 * mult_tresor)` qui calcule le score, ajoutez du code qui donne 99999 points si `mult_pieces` est égal à 9.
+
+### La tête de mort
+La tête de mort fonctionne exactement comme le diamant et la pièce d'or. À vous de jouer !
+
+#### Un neuvième dé
+Pas besoin de rajouter un nouveau dé, on va réutiliser le 9e dé pour la tête de mort.
+
+À l'endroit où on compte les têtes de mort, c'est à dire: dans la fonction `des_face_6`, ajoutez les deux lignes de code qui ajoutent 1 si `de_9` est égal à 6 en vous inspirant du code écrit pour les autres dés.
+
+#### Activer la carte
+
+Nous devons passer le dé à 6 quand on tire la carte tete_de_mort. Aux deux endroits où vous avez testé si on a tiré la carte diamant (`# a t'on pioché un diamant ?`), testez de la même manière si on a pioché la carte `"tete_de_mort"`, auquel cas mettez `de_9` sur la face 6
+
+C'est tout, on ne gagne rien si on tire 9 têtes de mort en même temps :)
+
+### Deux têtes de mort
+Pour la carte avec deux têtes de mort, comme nous avons déjà un 9e dé qui peut contenir une tête de mort, nous allons ajouter un 10e dé qui contiendra la deuxième tête de mort.
+
+En détail:
+
+Partout où vous avez écrit `de_9 = 0` (il devrait y avoir 2 endroits), ajoutez `de_10 = 0` pour initialiser la valeur de notre dé.
+
+Dans la méthode où on compte les têtes de mort (`des_face_6`), ajoutez les deux lignes de code qui ajouteront 1 au compte si le dé 10 est sur la face 6.
+
+Aux deux endroits où vous regardez quelle carte a été piochée, ajoutez ce code:
+
+```
+# a t'on pioché la carte avec deux têtes de mort ?
+if carte_active == "2_tetes_de_mort":
+  # on active le 9e dé sur la face 6 (tête de mort)
+  de_9 = 6
+  # et on active le 10e dé sur la face 6 (tête de mort)
+  de_10 = 6
+```
+
+Et voilà !
+
+### Le pirate
+Pour le pirate, tout ce qu'il faut faire, c'est doubler le score au moment de changer de joueur. Le pirate double aussi le malus de l'île de la tête de mort !
+
+Ajoutez une variable `multiplicateur` qui servira à multiplier tous les scores. Cette variable aura la valeur 1 par défaut, ce qui veut dire qu'elle n'affectera pas le score. Quand on tire la carte pirate, on passe le multiplicateur à 2, ce qui doublera le score.
+
+```
+# Multiplicateur de score
+multiplicateur = 1
+```
+
+Changez les lignes suivantes pour ajouter le multiplicateur:
+
+#### Le calcul du total
+
+Cette ligne calcule le score normal:
+```
+total = (100 * mult_diamants) + (100 * mult_pieces) + (100 * mult_serie_3) + (200 * mult_serie_4) + (500 * mult_serie_5) + (1000 * mult_serie_6) + (2000 * mult_serie_7) + (4000 * mult_serie_8) + (500 * mult_tresor)
+```
+
+On pourrait tout multiplier par le multiplicateur, mais il y a plus simple. Ajoutez cette ligne à la suite de la précédente:
+
+```
+total = total * multiplicateur
+```
+
+Ce que fait cette ligne c'est reprendre le total normal, le multiplier, et ranger le résultat de l'opération à nouveau dans la variable `total`!
+
+#### L'affichage à l'écran
+On veut voir les scores doublés à l'écran. Pour ce faire, remplacez ce code:
+
+```
+scores_text = [
+    f"Diamants: x{mult_diamants} = {100 * mult_diamants}",
+    f"Pièces d'or: x{mult_pieces} = {100 * mult_pieces}",
+    f"3 dés: x{mult_serie_3} = {100 * mult_serie_3}",
+    f"4 dés: x{mult_serie_4} = {200 * mult_serie_4}",
+    f"5 dés: x{mult_serie_5} = {500 * mult_serie_5}",
+    f"6 dés: x{mult_serie_6} = {1000 * mult_serie_6}",
+    f"7 dés: x{mult_serie_7} = {2000 * mult_serie_7}",
+    f"8 dés: x{mult_serie_8} = {4000 * mult_serie_8}",
+    f"Trésor: x{mult_tresor} = {500 * mult_tresor}",
+    f"TOTAL: {total} points"
+]
+```
+
+par celui-ci:
+
+```
+scores_text = [
+    f"Diamants: x{mult_diamants} = {100 * mult_diamants * multiplicateur}",
+    f"Pièces d'or: x{mult_pieces} = {100 * mult_pieces * multiplicateur}",
+    f"3 dés: x{mult_serie_3} = {100 * mult_serie_3 * multiplicateur}",
+    f"4 dés: x{mult_serie_4} = {200 * mult_serie_4 * multiplicateur}",
+    f"5 dés: x{mult_serie_5} = {500 * mult_serie_5 * multiplicateur}",
+    f"6 dés: x{mult_serie_6} = {1000 * mult_serie_6 * multiplicateur}",
+    f"7 dés: x{mult_serie_7} = {2000 * mult_serie_7 * multiplicateur}",
+    f"8 dés: x{mult_serie_8} = {4000 * mult_serie_8 * multiplicateur}",
+    f"Trésor: x{mult_tresor} = {500 * mult_tresor * multiplicateur}",
+    f"TOTAL: {total} points"
+]
+```
+
+#### Le malus de l'île
+La dernière chose à changer est cette ligne, qui enlève les points aux adversaires:
+
+```
+scores[i] = scores[i] - (100 * des_face_6())
+```
+
+Ajoutez le multiplicateur, comme ceci:
+```
+scores[i] = scores[i] - (100 * des_face_6() * multiplicateur)
+```
+
+#### Activer la carte
+Bien, nous avons tout multiplié par 1, la belle affaire ! Ce que nous voulons c'est faire passer ce multiplicateur à 2 quand on tire la carte pirate. Comment faire ? Rien de plus simple !
+
+Juste après avoir tiré une carte, on regarde si c'est une carte pirate. Si oui, on passe le multiplicateur à 2. Si non, on le remets à 1. N'oubliez pas cette partie sinon tous les scores seront doublés pour le reste de la partie !
+
+Aux deux endroits où vous avez écrit ceci:
+```
+# on pioche une carte
+carte_active = piocher_carte()
+```
+
+En dessous des tests pour savoir si on a pioché une carte diamant ou une carte pièce d'or, ajoutez ceci:
+
+```
+# a t'on pioché un pirate ?
+if carte_active == "pirate":
+  # on double le score
+  multiplicateur = 2
+else:
+  # on ne double pas
+  multiplicateur = 1
+```
+
+### Perroquet / Singe
+Quand cette carte est tirée, on compte les perroquets et les singes comme une seule catégorie 'animaux'. Par exemple, si on a 3 singes et 4 perroquets, au lieu de compter une série de 3 (100 points) plus une série de 4 (200 points), on compte une série de 7 (qui vaut 2000 points !)
+
+Le code à modifier se trouve donc dans les fonctions qui comptent les séries de dés (`serie_de_3`, `serie_de_4` etc.).
+
+On a deux choses à faire:
+- ajouter une variable `perroquet_singe` qui sera mise à `True` quand on tire la carte et à `False` sinon
+- quand la variable est à `True`, compter les faces 3 (singe) et les faces 4 (perroquet) ensemble, sinon compter les faces normalement.
+
+Aux deux endroits où vous testez quelle carte a été tirée, ajoutez ce code:
+```
+# a t'on pioché un perroquet / singe ?
+if carte_active == "perroquet_singe":
+  # on stocke cette information
+  perroquet_singe = True
+else:
+  # on mets la variable sur False pour qu'elle ne reste pas active indéfiniment
+  perroquet_singe = False
+```
+(n'oubliez pas de le faire aux deux endroits: en début de partie et à chaque changement de joueur)
+
+Remplacez ce code de la fonction `serie_de_3`:
+```
+if des_face_3() == 3:
+  compte = compte + 1
+if des_face_4() == 3:
+  compte = compte + 1
+```
+
+par ce code:
+```
+# cas spécial perroquet / singe
+if perroquet_singe == True:
+    # on compte les 3 et les 4 ensemble
+    if des_face_3() + des_face_4() == 3:
+      compte = compte + 1
+else:
+    # cas normal, on compte séparément
+  if des_face_3() == 3:
+    compte = compte + 1
+  if des_face_4() == 3:
+    compte = compte + 1
+```
+
+Modifiez le code de `serie_de_4`, `serie_de_5`, `serie_de_6`, `serie_de_7` et `serie_de_8` de la même manière. Il va falloir adapter un petit peu (pour la série de 5, on s'assure que les totaux sont égaux à 5, pas à 3 !) mais rien d'insurmontable, n'est-ce pas ?
+
+Voilà pour cette carte. N'hésitez pas à tester qu'elle fonctionne comme il faut !
+
+### La gardienne
+Pour la gardienne nous allons ajouter une variable `gardienne` qui est mise à `True` quand on tire la carte. Quand on mets les dés tête de mort sur le fond noir, si `gardienne` est `True` alors on va garder la tête de mort sur fond vert (ce qui permettra de la relancer) et on mettra `gardienne` à `False` pour garder en mêmoire que le pouvoir a été utilisé.
+
+Une fois de plus, aux deux endroits où vous testez quelle carte a été tirée, ajoutez ce code:
+
+```
+# a t'on pioché la gardienne ?
+if carte_active == "gardienne":
+  # on stocke cette information
+  gardienne = True
+else:
+  # on mets la variable sur False pour qu'elle ne reste pas active indéfiniment
+  gardienne = False
+```
+
+Maintenant, il faut tester si la variable `gardienne` est à `True` et si oui, passer une tête de mort sur fond vert. Le meilleur endroit pour faire ca est juste au moment où on affiche les dés. Aussi, juste avant cette ligne de code qui affiche le 8ème dé:
+
+```
+pygame.draw.rect(screen, couleur_de_8, pygame.Rect(383, 59, 52, 52))
+```
+
+ajoutez ce code:
+```
+if gardienne == True:
+    # Le dé numéro 8 est-il une tête de mort ?
+    if couleur_de_8 == black:
+      # Oui - on passe le fond en vert pour qu'il puisse être relancé
+      couleur_de_8 = green
+      # On a utilisé le pouvoir de la gardienne
+      gardienne = False
+```
+
+### Le coffre
+Normalement, quand on a 3 têtes de mort on perd tous ses dés. Avec le coffre, les points des dés qui ne sont pas relancés sont conservés. Ce que ca veut dire pour notre programme, c'est que lorsqu'un joueur tire 3 têtes de mort, il marque quand-même les points des dés bloqués (sur fond rouge).
+
+Comme pour les autres cartes, aux deux endroits où vous testez quelle carte a été tirée, ajoutez ce code qui intialise une variable `coffre`:
+
+```
+# a t'on pioché un coffre ?
+if carte_active == "coffre":
+  # on stocke cette information
+  coffre = True
+else:
+  # on mets la variable sur False pour qu'elle ne reste pas active indéfiniment
+  coffre = False
+```
+
+L'endroit où on teste si on a tiré 3 têtes de mort est le suivant:
+
+```
+if des_face_6() >= 3:
+    if ile_de_la_tete_de_mort == False:
+      total = 0
+```
+
+Au lieu de mettre le total à 0, si la carte coffre est active, on veut à la place calculer le score des dés rouges (uniquement).
+
+Le code qui calcule le score est le suivant:
+```
+# Variables pour le calcul du score
+mult_diamants = des_face_1()
+mult_pieces = des_face_2()
+mult_serie_3 = serie_de_3()
+mult_serie_4 = serie_de_4()
+mult_serie_5 = serie_de_5()
+mult_serie_6 = serie_de_6()
+mult_serie_7 = serie_de_7()
+mult_serie_8 = serie_de_8()
+if des_face_6() == 0:
+    mult_tresor = 1
+else:
+    mult_tresor = 0
+total = (100 * mult_diamants) + (100 * mult_pieces) + (100 * mult_serie_3) + (200 * mult_serie_4) + (500 * mult_serie_5) + (1000 * mult_serie_6) + (2000 * mult_serie_7) + (4000 * mult_serie_8) + (500 * mult_tresor)
+if mult_diamants == 9:
+    # Neuf diamants ! La partie est gagnée
+    total = 99999
+if mult_pieces == 9:
+    # Neuf pièces ! La partie est gagnée
+    total = 99999
+total = total * multiplicateur
+```
+Pour calculer le score sur les dés rouges uniquement, une manière de faire serait de coder des fonctions `de_face_1_rouge` qui ne compte que les faces rouges, `serie_de_3_rouge` qui ne compte que les séries avec des dés rouges, etc. mais ca serait très fastidieux.
+
+À la place on va utiliser une astuce: on va sauvegarder les valeurs des dés, changer les faces des dés verts juste avant de faire notre calcul (il suffit de donner une valeur que l'on n'utilise jamais (par exemple: 0) à tous les dés qui ne sont pas rouges), puis remettre les dés sur les bonnes valeurs après avoir fait notre calcul.
+
+Aussi, juste avant le calcul du score, ajoutez ce code:
+```
+if coffre == True:
+    # On sauvegarde tous les dés
+    sauv_de_1 = de_1
+    sauv_de_2 = de_2
+    sauv_de_3 = de_3
+    sauv_de_4 = de_4
+    sauv_de_5 = de_5
+    sauv_de_6 = de_6
+    sauv_de_7 = de_7
+    sauv_de_8 = de_8
+
+if des_face_6() >= 3:
+    if ile_de_la_tete_de_mort == False:
+      # Le joueur a perdu, est-ce qu'il a la carte coffre?
+      if coffre == True:
+          # On garde les dés rouges et on mets à 0 les autres
+          if couleur_de_1 != red:
+            de_1 = 0
+          if couleur_de_2 != red:
+            de_2 = 0
+          if couleur_de_3 != red:
+            de_3 = 0
+          if couleur_de_4 != red:
+            de_4 = 0
+          if couleur_de_5 != red:
+            de_5 = 0
+          if couleur_de_6 != red:
+            de_6 = 0
+          if couleur_de_7 != red:
+            de_7 = 0
+          if couleur_de_8 != red:
+            de_8 = 0
+```
+
+Et juste après le calcul du score, ajoutez ceci:
+```
+if coffre == True:
+  # On récupère les valeurs des dés
+  de_1 = sauv_de_1
+  de_2 = sauv_de_2
+  de_3 = sauv_de_3
+  de_4 = sauv_de_4
+  de_5 = sauv_de_5
+  de_6 = sauv_de_6
+  de_7 = sauv_de_7
+  de_8 = sauv_de_8
+```
+
+Avec cette astuce, le total de points va être fait sur les dés rouges uniquement et stocké dans la variable `total`. Il ne reste plus qu'une chose à faire: changer le code qui mets le total à 0 par un test qui vérifie si on a la carte coffre (on garde notre total) ou pas (on passe le score à 0)
+
+Changez ce code:
+```
+if des_face_6() >= 3:
+    if ile_de_la_tete_de_mort == False:
+      total = 0
+      scores_text = [
+          f"OH NON, C'EST PERDU !",
+          f"TOTAL: {total} points"
+      ]
+    else:
+      scores_text = [
+          f"SuR L'iLe De La TêTe De MoRT...",
+          f"MALUS ADVERSAIRE: {des_face_6() * 100} points"
+      ]
+```
+
+par celui-ci:
+```
+        if des_face_6() >= 3:
+            if ile_de_la_tete_de_mort == False:
+              # a t'on la carte coffre ?
+              if coffre == False:
+                # pas de chance
+                total = 0
+                scores_text = [
+                    f"OH NON, C'EST PERDU !",
+                    f"TOTAL: {total} points"
+                ]
+              else:
+                 # on garde les points des dés rouges
+                scores_text = [
+                    f"OH NON, C'EST PERDU !",
+                    f"Diamants: x{mult_diamants} = {100 * mult_diamants * multiplicateur}",
+                    f"Pièces d'or: x{mult_pieces} = {100 * mult_pieces * multiplicateur}",
+                    f"3 dés: x{mult_serie_3} = {100 * mult_serie_3 * multiplicateur}",
+                    f"4 dés: x{mult_serie_4} = {200 * mult_serie_4 * multiplicateur}",
+                    f"5 dés: x{mult_serie_5} = {500 * mult_serie_5 * multiplicateur}",
+                    # Comme on a au moins 3 têtes de mort, il est impossible
+                    # d'avoir plus de 5 dés identiques et d'avoir le bonus des
+                    # 8 dés sans tête de mort, donc on n'affiche rien de plus ici
+                    f"TOTAL DU COFFRE: {total} points"
+                ]
+            else:
+              scores_text = [
+                  f"SuR L'iLe De La TêTe De MoRT...",
+                  f"MALUS ADVERSAIRE: {des_face_6() * 100} points"
+              ]
+```
+Si vous testez ce code, vous devriez voir un problème: quand on calcule le score des dés rouges, comme on a remplacé toutes les têtes de mort par la valeur 0, le programme pense que l'on a gagné le bonus de 500 points. La solution: retirer 500 points du score calculé.
+
+Juste après cette ligne:
+```
+# on garde les points des dés rouges
+```
+
+ajoutez simplement ceci:
+```
+# on retire le bonus de 500 points
+total = total - 500
+```
+C'est mieux, mais il reste encore un problème :)
+Quand on perd, le score affiche les points des dés sauvegardés dans le coffre... Mais on peut encore relancer les dés verts et débloquer les dés rouges !
+
+Déclarez la variable `blocage` juste après le code où vous déclarez la variable `fin_du_jeu`:
+
+```
+# sera mis à vrai quand on a besoin de désactiver les boutons
+blocage = False
+```
+
+Après le code qui retire les 500 points de bonus, ajoutez ce code qui passe la variable `blocage` à `True`:
+
+```
+# on bloque les clics sur les dés et le bouton RELANCER
+blocage = True
+```
+
+Il faut maintenant tester la valeur de cette variable au moment de la gestion des clics. Si on est bloqué, le clic est désactivé.
+
+Il faut tester cette variable pour le bouton RELANCER et pour les huit dés.
+
+Pour le dé 1, on a ce code:
+```
+elif rect_de_1.collidepoint(event.pos):
+    # on a cliqué sur le dé numéro 1
+    if ile_de_la_tete_de_mort == False:
+      # On n'est pas sur l'île, on permet de bloquer le dé
+      if couleur_de_1 == green:
+          couleur_de_1 = red
+      elif couleur_de_1 == red:
+          couleur_de_1 = green
+```
+On ajoute un test pour savoir si on est bloqué, ce qui nous donne ceci:
+
+```
+elif rect_de_1.collidepoint(event.pos):
+    # on a cliqué sur le dé numéro 1
+    if ile_de_la_tete_de_mort == False:
+      # On n'est pas sur l'île, on permet de bloquer le dé
+      # mais uniquement si on n'est pas bloqué
+      if blocage == False:
+        if couleur_de_1 == green:
+            couleur_de_1 = red
+        elif couleur_de_1 == red:
+            couleur_de_1 = green
+```
+
+Ajoutez le même test pour les 7 autres dés.
+
+Pour le bouton RELANCER, on a du code qui commence comme ceci:
+```
+if bouton_relancer.collidepoint(event.pos):
+    if ile_de_la_tete_de_mort == False:
+      # à cet endroit dans le code, on sait qu'on a cliqué sur le bouton RELANCER. Reste à assigner une nouvelle face à notre dé
+```
+
+ajoutez le test pour savoir si on est bloqué ou non. Attention: cette branche du `if` est longue, prenez garde de bien indenter tout le code correctement !
+
+```
+# mais uniquement si on n'est pas bloqué
+if blocage == False:
+```
+
+Il reste une dernière chose à faire: remettre la variable `blocage` à `False` quand on change de joueur, sinon la partie va être bloquée !
+
+On ajoute ce code quand on clique sur `SUIVANT`. Juste après cette ligne:
+```
+elif bouton_suivant.collidepoint(event.pos):
+```
+
+ajoutez simplement:
+```
+blocage = False
+```
+
+Voilà pour le coffre. Il ne reste plus que les bateaux, accrochez-vous !
+
+### Les bateaux
+
+Quand un bateau est tiré, cela a pas mal d'influence sur les règles:
+* cela désactive l'île de la tête de mort
+* on doit relancer les dés tant que le bateau n'est pas vaincu
+* si le bateau est vaincu on gagne le bonus associé en plus des points des classiques
+* sinon, en plus de faire zéro points, on marque le bonus du bâteau en points négatifs
+
+#### initialisation
+
+Nous allons avoir besoin de quelques variables supplémentaires, déclarez-les là où vous avec initialisé les autres variables:
+
+```
+# mis à vrai si on tire une carte bateau
+en_combat = False
+# dés sabres à obtenir pour vaincre le bateau
+sabres_necessaires = 0
+# bonus du bateau
+valeur_bateau = 0
+```
+Copiez ce code une seconde fois, lors du changement de joueur (après un clic sur le bouton SUIVANT) pour réinitialiser les variables. Copiez juste avant la ligne `# on relance tous les dés et on les trie`
+
+#### mise à jour lors de la pioche
+Nous allons donner à ces variables leur valeur correcte quand on tire une carte bateau. Aux deux endroits où on pioche une carte dans votre code, juste après le code où on teste si on est sur l'île de la tête de mort:
+
+```
+# Sur l'île de la tête de mort?
+if des_face_6() >= 4:
+  ile_de_la_tete_de_mort = True
+else:
+  ile_de_la_tete_de_mort = False
+```
+
+ajoutez ceci pour le bateau à deux sabres:
+
+```
+# a t'on pioché une carte bateau 2 ?
+if carte_active == "bateau_2":
+  en_combat = True
+  sabres_necessaires = 2
+  valeur_bateau = 200
+  # on désactive l'île de la tête de mort
+```
+
+Ajoutez le code pour bateau_3 (nécessite 3 sabres, donne 500 points) et bateau_4 (nécessite 4 sabres, donne 1000 points) en adaptant le code ci-dessus.
+
+#### le combat
+Le joueur ne peut pas terminer son tour sans avoir vaincu le bateau (ou obtenu 3 têtes de mort). Nous allons donc bloquer le bouton SUIVANT tant que l'on n'aura pas le bon nombre de dés montrant un sabre (c'est à dire: tant que l'on sera 'en combat').
+
+Pour ce faire, nous allons réutiliser la même approche que pour les autres boutons.
+
+Juste après cette ligne qui teste si on a cliqué sur le bouton SUIVANT,
+
+```
+elif bouton_suivant.collidepoint(event.pos):
+```
+ajoutez ce code:
+```
+if en_combat == False:
+```
+et indentez d'un cran tout le code qui se trouve en dessous de ce `if` (comme pour la fois précédente, cela ne changera rien si on n'est pas en combat, et ne fera rien si on est en combat - ce qui correspond bien à un bouton bloqué)
+
+On débloque le bouton SUIVANT dans deux cas de figure: on a le bon nombre de sabres, ou on a perdu.
+
+Commencons par le cas où on perd (c'est plus simple): juste après ces lignes de code où on teste quand on a perdu:
+
+```
+if des_face_6() >= 3:
+    if ile_de_la_tete_de_mort == False:
+
+```
+Débloquez le bouton SUIVANT avec ce code:
+```
+blocage_suivant = False
+```
+
+Maintenant, le cas où on a le bon nombre de sabres: quand on clique sur RELANCER, on vérifie si on a le bon nombre de sabres (dés sur la face 5).
+
+Dans le bloc de code qui commence par `if bouton_relancer.collidepoint(event.pos):`, après ces lignes:
+
+```
+# On ré-assigne les valeurs triées aux variables
+(de_1, couleur_de_1), (de_2, couleur_de_2), (de_3, couleur_de_3), (de_4, couleur_de_4), (de_5, couleur_de_5), (de_6, couleur_de_6), (de_7, couleur_de_7), (de_8, couleur_de_8) = stockage
+```
+nous devons compter si on est en combat, et si on a le bon nombre de sabres. Si c'est le cas alors on débloque le bouton, mais on bloque également autant de sabres que nécessaire (pour éviter que le joueur ne relance des dés). 
+
+Ajoutez ce code:
+```
+# est-on en combat?
+if en_combat == True:
+    # le navire est-il vaincu ?
+    if des_face_5() >= sabres_necessaires:
+      # le navire est vaincu.
+      # on débloque le bouton SUIVANT
+      en_combat = False
+      # on bloque autant de dés 'sabre' que nécessaire
+      sabres_attribues = 0
+      # doit-on bloquer le de 8 ?
+      if de_8 == 5: # sabre
+          if sabres_attribues < sabres_necessaires:
+            couleur_de_8 = black
+            sabres_attribues = sabres_attribues + 1
+      # doit-on bloquer le de 7 ?
+      if de_7 == 5: # sabre
+          if sabres_attribues < sabres_necessaires:
+            couleur_de_7 = black
+            sabres_attribues = sabres_attribues + 1
+      # doit-on bloquer le de 6 ?
+      if de_6 == 5: # sabre
+          if sabres_attribues < sabres_necessaires:
+            couleur_de_6 = black
+            sabres_attribues = sabres_attribues + 1
+      # doit-on bloquer le de 5 ?
+      if de_5 == 5: # sabre
+          if sabres_attribues < sabres_necessaires:
+            couleur_de_5 = black
+            sabres_attribues = sabres_attribues + 1
+      # doit-on bloquer le de 4 ?
+      if de_4 == 5: # sabre
+          if sabres_attribues < sabres_necessaires:
+            couleur_de_4 = black
+            sabres_attribues = sabres_attribues + 1
+      # doit-on bloquer le de 3 ?
+      if de_3 == 5: # sabre
+          if sabres_attribues < sabres_necessaires:
+            couleur_de_3 = black
+            sabres_attribues = sabres_attribues + 1
+      # doit-on bloquer le de 2 ?
+      if de_2 == 5: # sabre
+          if sabres_attribues < sabres_necessaires:
+            couleur_de_2 = black
+            sabres_attribues = sabres_attribues + 1
+      # doit-on bloquer le de 1 ?
+      if de_1 == 5: # sabre
+          if sabres_attribues < sabres_necessaires:
+            couleur_de_1 = black
+            sabres_attribues = sabres_attribues + 1
+```
+
+Ce code doit aussi être copié en début de programme, des fois qu'on tombe directement sur le bateau et qu'on le batte tout de suite sans avoir besoin de RELANCER. Donc remontez en haut de votre code, et copiez le même code juste après ces ligne:
+
+```
+# On ré-assigne les valeurs triées aux variables
+(de_1, couleur_de_1), (de_2, couleur_de_2), (de_3, couleur_de_3), (de_4, couleur_de_4), (de_5, couleur_de_5), (de_6, couleur_de_6), (de_7, couleur_de_7), (de_8, couleur_de_8) = stockage
+```
+#### le score
+Si le joueur perd, on lui donne un malus. Nous allons changer cette partie du code:
+
+```
+if des_face_6() >= 3:
+    if ile_de_la_tete_de_mort == False:
+      en_combat = False
+      # a t'on la carte coffre ?
+      if coffre == False:
+        # pas de chance
+        total = 0
+        scores_text = [
+            f"OH NON, C'EST PERDU !",
+            f"TOTAL: {total} points"
+        ]
+```
+
+Mettez ce code à la place:
+
+```
+if des_face_6() >= 3:
+    if ile_de_la_tete_de_mort == False:
+      en_combat = False
+      # a t'on la carte coffre ?
+      if coffre == False:
+        # pas de chance
+        # avons nous de plus perdu contre un bateau ?
+        if valeur_bateau == 0:
+          # c'est juste une défaite classique
+          total = 0
+          scores_text = [
+              f"OH NON, C'EST PERDU !",
+              f"TOTAL: {total} points"
+          ]
+        else:
+          # on a en plus perdu contre un bateau !!
+          total = -1 * valeur_bateau
+          scores_text = [
+              f"LE NAVIRE VOUS A COULÉ !!",
+              f"TOTAL: {total} points"
+          ]
+```
+
+Si le joueur gagne, on lui donne un bonus. Pour le total, on ajoute la valeur de `valeur_bateau`. Remplacez cette ligne:
+
+```
+total = (100 * mult_diamants) + (100 * mult_pieces) + (100 * mult_serie_3) + (200 * mult_serie_4) + (500 * mult_serie_5) + (1000 * mult_serie_6) + (2000 * mult_serie_7) + (4000 * mult_serie_8) + (500 * mult_tresor)
+```
+
+par:
+
+```
+total = (100 * mult_diamants) + (100 * mult_pieces) + (100 * mult_serie_3) + (200 * mult_serie_4) + (500 * mult_serie_5) + (1000 * mult_serie_6) + (2000 * mult_serie_7) + (4000 * mult_serie_8) + (500 * mult_tresor) + valeur_bateau
+```
+
+Nous allons également modifier l'affichage:
+
+Après ce code:
+
+```
+scores_text = [
+    f"Diamants: x{mult_diamants} = {100 * mult_diamants * multiplicateur}",
+    f"Pièces d'or: x{mult_pieces} = {100 * mult_pieces * multiplicateur}",
+    f"3 dés: x{mult_serie_3} = {100 * mult_serie_3 * multiplicateur}",
+    f"4 dés: x{mult_serie_4} = {200 * mult_serie_4 * multiplicateur}",
+    f"5 dés: x{mult_serie_5} = {500 * mult_serie_5 * multiplicateur}",
+    f"6 dés: x{mult_serie_6} = {1000 * mult_serie_6 * multiplicateur}",
+    f"7 dés: x{mult_serie_7} = {2000 * mult_serie_7 * multiplicateur}",
+    f"8 dés: x{mult_serie_8} = {4000 * mult_serie_8 * multiplicateur}",
+    f"Trésor: x{mult_tresor} = {500 * mult_tresor * multiplicateur}",
+    f"TOTAL: {total} points"
+]
+```
+
+ajoutez ce code qui prend en compte le bonus du bateau:
+
+```
+if valeur_bateau != 0:
+  scores_text = [
+    f"Diamants: x{mult_diamants} = {100 * mult_diamants * multiplicateur}",
+    f"Pièces d'or: x{mult_pieces} = {100 * mult_pieces * multiplicateur}",
+    f"3 dés: x{mult_serie_3} = {100 * mult_serie_3 * multiplicateur}",
+    f"4 dés: x{mult_serie_4} = {200 * mult_serie_4 * multiplicateur}",
+    f"5 dés: x{mult_serie_5} = {500 * mult_serie_5 * multiplicateur}",
+    f"6 dés: x{mult_serie_6} = {1000 * mult_serie_6 * multiplicateur}",
+    f"7 dés: x{mult_serie_7} = {2000 * mult_serie_7 * multiplicateur}",
+    f"8 dés: x{mult_serie_8} = {4000 * mult_serie_8 * multiplicateur}",
+    f"Trésor: x{mult_tresor} = {500 * mult_tresor * multiplicateur}",
+    f"Combat: {valeur_bateau}",
+    f"TOTAL: {total} points"
+]
+```
+
+Et en-dessous ajoutez ceci:
+```
+if en_combat == True:
+    # on affiche une info sur le score à battre
+  scores_text = [
+      "LE COMBAT FAIT RAGE !",
+      f"Sabres nécessaires: {sabres_necessaires}",
+      f"Vos sabres: {des_face_5()}"
+  ]
+```
+
+En mettant le code dans cet ordre, on obtient le résultat suivant:
+* on affiche d'abord le total avec le bonus, comme si on avait gagné
+* ensuite on teste si on est en combat. Si c'est le cas (on n'a pas encore gagné) alors le nouveau texte écrase la version précédente. C'est donc celle-ci qui apparaitra tant que l'on combat.
+
+![version 7](jeu7-1.png)
+![version 7](jeu7-2.png)
+![version 7](jeu7-3.png)
+![version 7](jeu7-4.png)
+
+|:warning: FAITES UNE SAUVEGARDE ! :warning:|
+|--------|
+|Faites une copie de `jeu.py` et renommez la copie `jeu7.py`. Si vous cassez votre code avec le huitième module vous pourrez repartir d'un code qui fonctionne...|
+
+À ce stade, vous avez entièrement codé le jeu 1000 Sabords avec toutes ses règles. Bel exploit !
+
 ## 8ème mission: jouer contre... l'ordinateur
 
 ## Félicitations !!!
 Vous avez codé le jeu de 1000 Sabords en python en juste quelques jours, c'est du bon boulot ! Vous pouvez l'améliorer en ajoutant de nouvelles cartes de votre invention, en rendant le jeu plus joli, en ajoutant des joueurs, on optimisant le code avec des fonctions... ou tout simplement y jouer avec vos amis !
+
+Et pour passer de bons moments en famille ou entre amis, pensez à acheter votre boîte de jeu 1000 Sabords ou à vous la faire offrir !
