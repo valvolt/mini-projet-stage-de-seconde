@@ -1386,9 +1386,9 @@ Vous pouvez mettre le texte de votre choix, et même des emoji pour faire des de
 
 Vous pouvez ajouter du texte comme celui-ci pour bateau_4:
 
-:hocho::hocho::hocho::hocho:
-
-**1000 points**
+|:hocho::hocho::hocho::hocho:|
+|--------|
+| **1000 points** |
 
 ### Charger les cartes dans le jeu
 Lors de votre première mission, vous avez créé un dictionnaire qui contient 6 images, chacune associée à une face de dé:
@@ -1983,23 +1983,26 @@ total = total - 500
 C'est mieux, mais il reste encore un problème :)
 Quand on perd, le score affiche les points des dés sauvegardés dans le coffre... Mais on peut encore relancer les dés verts et débloquer les dés rouges !
 
-Déclarez la variable `blocage` juste après le code où vous déclarez la variable `fin_du_jeu`:
+Déclarez les variables `blocage_des` et `blocage_relancer` juste après le code où vous déclarez la variable `fin_du_jeu`:
 
 ```
-# sera mis à vrai quand on a besoin de désactiver les boutons
-blocage = False
+# sera mis à vrai quand on a besoin de désactiver les dés
+blocage_des = False
+# sera mis à vrai quand on a besoin de désactiver le bouton RELANCER
+blocage_relancer = False
 ```
 
-Après le code qui retire les 500 points de bonus, ajoutez ce code qui passe la variable `blocage` à `True`:
+Après le code qui retire les 500 points de bonus, ajoutez ce code qui passe les variables de blocage à `True`:
 
 ```
 # on bloque les clics sur les dés et le bouton RELANCER
-blocage = True
+blocage_des = True
+blocage_relancer = True
 ```
 
-Il faut maintenant tester la valeur de cette variable au moment de la gestion des clics. Si on est bloqué, le clic est désactivé.
+Il faut maintenant tester la valeur de ces variables au moment de la gestion des clics. Si on est bloqué, le clic est désactivé.
 
-Il faut tester cette variable pour le bouton RELANCER et pour les huit dés.
+Il faut regarder la valeur de `blocage_des` pour les huit dés et la valeur de `blocage_relancer` pour le bouton RELANCER.
 
 Pour le dé 1, on a ce code:
 ```
@@ -2020,7 +2023,7 @@ elif rect_de_1.collidepoint(event.pos):
     if ile_de_la_tete_de_mort == False:
       # On n'est pas sur l'île, on permet de bloquer le dé
       # mais uniquement si on n'est pas bloqué
-      if blocage == False:
+      if blocage_des == False:
         if couleur_de_1 == green:
             couleur_de_1 = red
         elif couleur_de_1 == red:
@@ -2040,10 +2043,10 @@ ajoutez le test pour savoir si on est bloqué ou non. Attention: cette branche d
 
 ```
 # mais uniquement si on n'est pas bloqué
-if blocage == False:
+if blocage_relancer == False:
 ```
 
-Il reste une dernière chose à faire: remettre la variable `blocage` à `False` quand on change de joueur, sinon la partie va être bloquée !
+Il reste une dernière chose à faire: remettre les variables de blocage à `False` quand on change de joueur, sinon la partie va être bloquée !
 
 On ajoute ce code quand on clique sur `SUIVANT`. Juste après cette ligne:
 ```
@@ -2052,7 +2055,8 @@ elif bouton_suivant.collidepoint(event.pos):
 
 ajoutez simplement:
 ```
-blocage = False
+blocage_des = False
+blocage_relancer = False
 ```
 
 Voilà pour le coffre. Il ne reste plus que les bateaux, accrochez-vous !
@@ -2072,6 +2076,8 @@ Nous allons avoir besoin de quelques variables supplémentaires, déclarez-les l
 ```
 # mis à vrai si on tire une carte bateau
 en_combat = False
+# sera mis à vrai quand on a besoin de désactiver le bouton SUIVANT
+blocage_suivant = False
 # dés sabres à obtenir pour vaincre le bateau
 sabres_necessaires = 0
 # bonus du bateau
@@ -2096,6 +2102,7 @@ ajoutez ceci pour le bateau à deux sabres:
 # a t'on pioché une carte bateau 2 ?
 if carte_active == "bateau_2":
   en_combat = True
+  blocage_suivant = True
   sabres_necessaires = 2
   valeur_bateau = 200
   # on désactive l'île de la tête de mort
@@ -2115,7 +2122,7 @@ elif bouton_suivant.collidepoint(event.pos):
 ```
 ajoutez ce code:
 ```
-if en_combat == False:
+if blocage_suivant == False:
 ```
 et indentez d'un cran tout le code qui se trouve en dessous de ce `if` (comme pour la fois précédente, cela ne changera rien si on n'est pas en combat, et ne fera rien si on est en combat - ce qui correspond bien à un bouton bloqué)
 
@@ -2150,8 +2157,10 @@ if en_combat == True:
     # le navire est-il vaincu ?
     if des_face_5() >= sabres_necessaires:
       # le navire est vaincu.
-      # on débloque le bouton SUIVANT
+      # on stoppe le combat
       en_combat = False
+      # on débloque le bouton SUIVANT
+      blocage_suivant = False
       # on bloque autant de dés 'sabre' que nécessaire
       sabres_attribues = 0
       # doit-on bloquer le de 8 ?
@@ -2202,6 +2211,16 @@ Ce code doit aussi être copié en début de programme, des fois qu'on tombe dir
 # On ré-assigne les valeurs triées aux variables
 (de_1, couleur_de_1), (de_2, couleur_de_2), (de_3, couleur_de_3), (de_4, couleur_de_4), (de_5, couleur_de_5), (de_6, couleur_de_6), (de_7, couleur_de_7), (de_8, couleur_de_8) = stockage
 ```
+
+Et il faut le copier une troisième fois: juste après avoir cliqué sur SUIVANT, des fois que le joueur suivant tire un bateau et le batte directement.
+
+Cherchez encore les lignes:
+```
+# On ré-assigne les valeurs triées aux variables
+(de_1, couleur_de_1), (de_2, couleur_de_2), (de_3, couleur_de_3), (de_4, couleur_de_4), (de_5, couleur_de_5), (de_6, couleur_de_6), (de_7, couleur_de_7), (de_8, couleur_de_8) = stockage
+```
+mais cette fois dans la zone de code qui correspond au bouton SUIVANT (`if bouton_suivant.collidepoint(event.pos):`)
+
 #### le score
 Si le joueur perd, on lui donne un malus. Nous allons changer cette partie du code:
 
@@ -2239,6 +2258,9 @@ if des_face_6() >= 3:
         else:
           # on a en plus perdu contre un bateau !!
           total = -1 * valeur_bateau
+          # on remets à 0 si on est passé en négatif
+          if total < 0:
+              total = 0
           scores_text = [
               f"LE NAVIRE VOUS A COULÉ !!",
               f"TOTAL: {total} points"
@@ -2322,8 +2344,376 @@ En mettant le code dans cet ordre, on obtient le résultat suivant:
 À ce stade, vous avez entièrement codé le jeu 1000 Sabords avec toutes ses règles. Bel exploit !
 
 ## 8ème mission: jouer contre... l'ordinateur
+Nous allons ajouter la possibilité de jouer contre l'ordinateur. Pour ce faire, nous allons programmer une stratégie de jeu pour notre adversaire. Notre adversaire aura le nom de joueur `ORDI_1000`. Si on entre le nom de joueur ORDI_1000 alors l'ordinateur jouera pour ce joueur. Si on entre un autre nom, comme d'habitude ce sera à un joueur humain d'agir.
+
+On partira du principe que ORDI_1000 ne sera pas le premier joueur, ca évitera d'écrire le même code deux fois (une fois au démarrage et une fois quand on passe au joueur suivant).
+
+Quand ce sera à l'ordinateur de jouer, nous allons bloquer certains boutons de manière à ce que le joueur humain voie ce qu'il se passe mais ne puisse pas jouer à la place de l'ordinateur. Nous avons déjà la possiblité de bloquer le bouton RELANCER via la variable `blocage_relancer` et la possibilité de bloquer les clics sur les dés via la variable `blocage_des`. Nous avons également la possibilité de bloquer le bouton SUIVANT via la variable `blocage_suivant`. Donc tout est prêt !
+
+On commence donc à regarder ce qu'il se passe au moment où le tour de ORDI_1000 arrive: dans le code qui gère le clic sur le bouton SUIVANT, on laisse tout le code se dérouler normalement: initialisation des dés, tirage d'une carte, résolutions de certaines actions comme le combat de bateau. On va ajouter notre code là où normalement on laisse le joueur cliquer, c'est à dire après ce code:
+
+```
+stockage.sort()
+(de_1, couleur_de_1), (de_2, couleur_de_2), (de_3, couleur_de_3), (de_4, couleur_de_4), (de_5, couleur_de_5), (de_6, couleur_de_6), (de_7, couleur_de_7), (de_8, couleur_de_8) = stockage
+```
+
+Attention: ces lignes de codes apparaissent plusieurs fois dans votre programme. On veut ajouter le code là où on gère le bouton SUIVANT. Commencez par chercher cette ligne:
+```
+elif bouton_suivant.collidepoint(event.pos):
+```
+puis cherchez le code du dessus en scrollant vers le bas à partir de ce `elif`.
+
+En dessous, ajoutez ce code:
+```
+# Le joueur est-il joué par l'ordinateur ?
+if joueurs[joueur_actif] == "ORDI_1000":
+    # Au tour de ORDI_1000
+    # On bloque les clics sur les dés (l'ordi va les lancer lui-même)
+    blocage_des = True
+```
+
+Ce n'est pas terminé, nous allons devoir déplacer le code que vous venez d'ajouter. En principe, en dessous de ce code vous devriez avoir les lignes suivantes:
+
+```
+# est-on en combat?
+if en_combat == True:
+```
+
+Nous voulons que ce code soit placé _avant_ le code qui teste si c'est l'ordinateur qui joue. Utilisez couper (CTRL-X) coller (CTRL-V) pour déplacer le code
+```
+# Le joueur est-il joué par l'ordinateur ?
+if joueurs[joueur_actif] == "ORDI_1000":
+    # Au tour de ORDI_1000
+    # On bloque les clics sur les dés (l'ordi va les lancer lui-même)
+    blocage_des = True
+```
+et pour le mettre après la zone de code qui commence par:
+```
+# est-on en combat?
+if en_combat == True:
+```
+Pourquoi n'a t'on pas directement mis le code au bon endroit ? La réponse tient dans l'alignement des indentations. En faisant en deux étapes on s'assure à l'étape 1 que le code est indenté correctement et on s'assure à l'étape 2 qu'il est placé au bon endroit. Pas la chose la plus simple à faire, c'est l'un des inconvénients de python, un langage informatique où l'indentation est très importante !
+
+### Première stratégie: relancer, relancer, relancer
+Lorsque c'est le tour de ORDI_1000, les dés sont bloqués, c'est à dire que le joueur ne peut pas les modifier. Il reste 2 actions possibles pour le joueur pendant le tour de l'ordi: cliquer sur RELANCER ou sur SUIVANT.
+
+Nous allons implémenter la première stratégie (très mauvaise !) de l'ordinateur: relancer tous les dés jusqu'à ce qu'il perde.
+
+Pour implémenter cette stratégie c'est facile: il suffit de bloquer le bouton SUIVANT, et de le débloquer quand on a perdu.
+
+Après ce code:
+```
+# Le joueur est-il joué par l'ordinateur ?
+if joueurs[joueur_actif] == "ORDI_1000":
+    # Au tour de ORDI_1000
+    # On bloque les clics sur les dés (l'ordi va les lancer lui-même)
+    blocage_des = True
+```
+ajoutez ceci dans le `if`:
+```
+# On bloque le bouton SUIVANT
+blocage_suivant = True
+# A t'on perdu ou a t'on zéro dé à relancer ? Si oui on débloque le bouton SUIVANT
+if des_face_6() >= 3:
+  blocage_suivant = False
+elif (couleur_de_1 != green and couleur_de_2 != green and couleur_de_3 != green and couleur_de_4 != green and couleur_de_5 != green and couleur_de_6 != green and couleur_de_7 != green and couleur_de_8 != green):
+  blocage_suivant = False
+else:
+  # la partie continue !
+  pass
+```
+
+Bon, ca fonctionne, mais cet adversaire n'est pas très intéressant à affronter. Nous allons le rendre un peu plus intelligent.
+
+### Objectif: 1000 points par tour
+Notre adversaire va essayer d'obtenir 1000 points en relancant les dés (c'est pour ca qu'il s'appelle ORDI_1000 :)). Quand ce score est atteint, il bloque le bouton RELANCER et débloque le bouton SUIVANT afin de valider son score.
+
+On veut tester si `total >= 1000` et si c'est le cas, bloquer le bouton RELANCER. Le problème c'est qu'à cette ligne de code, le calcul du total n'est pas encore fait, ce qui veut dire que la variable `total` a gardé en mémoire le score du joueur précédent.
+
+Pour corriger ce problème, on va copier-coller la partie du code qui fait ce calcul. Une fois de plus, ce n'est pas très optimal comme technique de programmation, mais ca a le mérite d'être simple :)
+
+Le code dont nous avons besoin est celui-ci:
+```
+# Variables pour le calcul du score
+mult_diamants = des_face_1()
+mult_pieces = des_face_2()
+mult_serie_3 = serie_de_3()
+mult_serie_4 = serie_de_4()
+mult_serie_5 = serie_de_5()
+mult_serie_6 = serie_de_6()
+mult_serie_7 = serie_de_7()
+mult_serie_8 = serie_de_8()
+if des_face_6() == 0:
+    mult_tresor = 1
+else:
+    mult_tresor = 0
+total = (100 * mult_diamants) + (100 * mult_pieces) + (100 * mult_serie_3) + (200 * mult_serie_4) + (500 * mult_serie_5) + (1000 * mult_serie_6) + (2000 * mult_serie_7) + (4000 * mult_serie_8) + (500 * mult_tresor) + valeur_bateau
+if mult_diamants == 9:
+    # Neuf diamants ! La partie est gagnée
+    total = 99999
+if mult_pieces == 9:
+    # Neuf pièces ! La partie est gagnée
+    total = 99999
+total = total * multiplicateur
+```
+
+dans le code précédent, remplacez la commande `pass` par ce code, puis ajoutez ceci à la suite:
+```
+# a t'on obtenu 1000 points?
+if total >= 1000:
+  # on bloque le bouton RELANCER pour conserver notre score
+  blocage_relancer = True
+  # on débloque le bouton SUIVANT pour valider notre score
+  blocage_suivant = False
+```
+L'ordinateur a à présent le comportement suivant:
+- tant qu'il n'a pas 1000 points ou plus, il relance tous les dés verts
+
+C'est pas mal mais c'est un comportement très simpliste. Pour atteindre 1000 points plus facilement, nous allons ajouter un nouveau comportement:
+
+- si on a 3 dés identiques ou davantage, on les garde avant de relancer
+- si on a plus d'une série de 3 dés identiques, on garde un seul type de dé, dans l'ordre de priorité suivant: diamant, pièce d'or, singe, perroquet, sabre.
+
+Voici le code à ajouter pour ce commencer à coder ce comportement:
+```
+else:
+    # on n'a pas encore 1000 points et on n'a pas encore perdu.
+    # si on a déjà 3 diamants ou plus, on les conserve
+    if des_face_1() >= 3:
+      # on passe la couleur des diamants en rouge
+      # et la couleur des autres dés en vert (sauf ceux qui sont déjà noirs)
+      if de_1 == 1:
+          if couleur_de_1 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_1 = red
+      elif couleur_de_1 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_1 = green
+      if de_2 == 1:
+          if couleur_de_2 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_2 = red
+      elif couleur_de_2 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_2 = green
+      if de_3 == 1:
+          if couleur_de_3 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_3 = red
+      elif couleur_de_3 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_3 = green
+      if de_4 == 1:
+          if couleur_de_4 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_4 = red
+      elif couleur_de_4 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_4 = green
+      if de_5 == 1:
+          if couleur_de_5 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_5 = red
+      elif couleur_de_5 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_5 = green
+      if de_6 == 1:
+          if couleur_de_6 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_6 = red
+      elif couleur_de_6 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_6 = green
+      if de_7 == 1:
+          if couleur_de_7 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_7 = red
+      elif couleur_de_7 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_7 = green
+      if de_8 == 1:
+          if couleur_de_8 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_8 = red
+      elif couleur_de_8 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_8 = green
+
+    # sinon, si on a déjà 3 pièces d'or ou plus, on les conserve
+    elif des_face_2() >= 3:
+      # on passe la couleur des pièces d'or en rouge
+      # et la couleur des autres dés en vert (sauf ceux qui sont déjà noirs)
+      if de_1 == 2:
+          if couleur_de_1 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_1 = red
+      elif couleur_de_1 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_1 = green
+      if de_2 == 2:
+          if couleur_de_2 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_2 = red
+      elif couleur_de_2 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_2 = green
+      if de_3 == 2:
+          if couleur_de_3 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_3 = red
+      elif couleur_de_3 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_3 = green
+      if de_4 == 2:
+          if couleur_de_4 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_4 = red
+      elif couleur_de_4 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_4 = green
+      if de_5 == 2:
+          if couleur_de_5 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_5 = red
+      elif couleur_de_5 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_5 = green
+      if de_6 == 2:
+          if couleur_de_6 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_6 = red
+      elif couleur_de_6 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_6 = green
+      if de_7 == 2:
+          if couleur_de_7 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_7 = red
+      elif couleur_de_7 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_7 = green
+      if de_8 == 2:
+          if couleur_de_8 == green:
+          # on bloque le dé car on en a le droit
+          couleur_de_8 = red
+      elif couleur_de_8 == red:
+          # ce n'est pas la bonne face, on débloque car on en a le droit
+          couleur_de_8 = green
+```
+
+Ajoutez à la suite, de la même manière, le code qui gère les singes (face 3), les perroquets (face 4) et les sabres (face 5).
+
+### Les combats
+Il reste un problème à gérer: lors des combats contre les navires, ORDI_1000 peut bloquer le jeu. Par exemple: si ses dés devraient donner 1000 points avec les règles normales, il va bloquer le bouton RELANCER. Mais tant que le navire ne sera pas battu, le bouton SUIVANT restera également bloqué ! Il faut donc gérer ce cas particulier.
+
+Après avoir vérifié si on a perdu, mais avant de calculer le score, nous allons gérer le cas particulier de la bataille. Si on est en train de se battre, on bloque simplement les sabres et on ne fait rien de plus (on ne bloque donc pas le bouton RELANCER...)
+
+Ajoutez ce code après le code qui regarde si ORDI_1000 a perdu, soit après ce code:
+
+```
+# A t'on perdu ou a t'on zéro dé à relancer ? Si oui on débloque le bouton SUIVANT
+if des_face_6() >= 3:
+  blocage_suivant = False
+elif (couleur_de_1 != green and couleur_de_2 != green and couleur_de_3 != green and couleur_de_4 != green and couleur_de_5 != green and couleur_de_6 != green and couleur_de_7 != green and couleur_de_8 != green):
+  blocage_suivant = False
+```
+
+ajoutez:
+
+```
+elif en_combat == True:
+  # on passe la couleur des sabres en rouge
+  # et la couleur des autres dés en vert (sauf ceux qui sont déjà noirs)
+  if de_1 == 5:
+      if couleur_de_1 == green:
+      # on bloque le dé car on en a le droit
+        couleur_de_1 = red
+  elif couleur_de_1 == red:
+      # ce n'est pas la bonne face, on débloque car on en a le droit
+      couleur_de_1 = green
+  if de_2 == 5:
+      if couleur_de_2 == green:
+      # on bloque le dé car on en a le droit
+        couleur_de_2 = red
+  elif couleur_de_2 == red:
+      # ce n'est pas la bonne face, on débloque car on en a le droit
+      couleur_de_2 = green
+  if de_3 == 5:
+      if couleur_de_3 == green:
+      # on bloque le dé car on en a le droit
+        couleur_de_3 = red
+  elif couleur_de_3 == red:
+      # ce n'est pas la bonne face, on débloque car on en a le droit
+      couleur_de_3 = green
+  if de_4 == 5:
+      if couleur_de_4 == green:
+      # on bloque le dé car on en a le droit
+        couleur_de_4 = red
+  elif couleur_de_4 == red:
+      # ce n'est pas la bonne face, on débloque car on en a le droit
+      couleur_de_4 = green
+  if de_5 == 5:
+      if couleur_de_5 == green:
+      # on bloque le dé car on en a le droit
+        couleur_de_5 = red
+  elif couleur_de_5 == red:
+      # ce n'est pas la bonne face, on débloque car on en a le droit
+      couleur_de_5 = green
+  if de_6 == 5:
+      if couleur_de_6 == green:
+      # on bloque le dé car on en a le droit
+        couleur_de_6 = red
+  elif couleur_de_6 == red:
+      # ce n'est pas la bonne face, on débloque car on en a le droit
+      couleur_de_6 = green
+  if de_7 == 5:
+      if couleur_de_7 == green:
+      # on bloque le dé car on en a le droit
+        couleur_de_7 = red
+  elif couleur_de_7 == red:
+      # ce n'est pas la bonne face, on débloque car on en a le droit
+      couleur_de_7 = green
+  if de_8 == 5:
+      if couleur_de_8 == green:
+      # on bloque le dé car on en a le droit
+        couleur_de_8 = red
+  elif couleur_de_8 == red:
+      # ce n'est pas la bonne face, on débloque car on en a le droit
+      couleur_de_8 = green
+```
+
+### Le bouton RELANCER
+Terminé ? Pas tout à fait. ORDI_1000 est maintenant capable de choisir quels dés bloquer lors du premier tour (juste au moment où on a appuyé sur SUIVANT), mais si vous appuyez sur RELANCER, vous devriez remarquer qu'il ne continue pas à bloquer les dés qui font grandir sa série. La solution: recopier ce comportement de blocage de dés pour le bouton RELANCER.
+
+Dans le code qui gère le bouton RELANCER (qui commence par la ligne `elif relancer.collidepoint(event.pos):`), après ces lignes:
+```
+# On ré-assigne les valeurs triées aux variables
+(de_1, couleur_de_1), (de_2, couleur_de_2), (de_3, couleur_de_3), (de_4, couleur_de_4), (de_5, couleur_de_5), (de_6, couleur_de_6), (de_7, couleur_de_7), (de_8, couleur_de_8) = stockage
+```
+recopiez tout le comportement de ORDI_1000, c'est à dire tout le bloc de code qui commence par ces lignes:
+```
+# Le joueur est-il joué par l'ordinateur ?
+if joueurs[joueur_actif] == "ORDI_1000":
+```
+
+### D'autres stratégies...
+
+C'est la fin de la huitième mission, vous êtes arrivés au bout !
+
+Bien sûr, notre ORDI_1000 est loin d'être parfait:
+- il ne sait pas combiner les perroquets et les singes quand la carte perroquet / singe a été piochée
+- il ne vérifie pas s'il a 1000 points quand il bat un bateau
+- il n'essaie pas de faire des têtes de mort supplémentaires quand il est sur l'île de la tête de mort
+- etc.
+
+Si le coeur vous en dit, c'est maintenant à vous d'améliorer la stratégie de ORDI_1000. Vous pouvez également ajouter d'autres adversaires qui jouent différemment, quelques idées:
+- ORDI_PRUDENT: arrête son tour dès qu'il a 2 têtes de mort
+- ORDI_COMPETITIF: joue comme ORDI_PRUDENT quand il mène au score, et comme ORDI_1000 quand il est mené
+- etc !
+
+![version 8](jeu8.png)
 
 ## Félicitations !!!
 Vous avez codé le jeu de 1000 Sabords en python en juste quelques jours, c'est du bon boulot ! Vous pouvez l'améliorer en ajoutant de nouvelles cartes de votre invention, en rendant le jeu plus joli, en ajoutant des joueurs, on optimisant le code avec des fonctions... ou tout simplement y jouer avec vos amis !
 
-Et pour passer de bons moments en famille ou entre amis, pensez à acheter votre boîte de jeu 1000 Sabords ou à vous la faire offrir !
+Et pour passer de bons moments en famille ou entre amis, **pensez à acheter votre boîte de jeu 1000 Sabords ou à vous la faire offrir !**
