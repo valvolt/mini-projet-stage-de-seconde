@@ -1700,6 +1700,22 @@ scores_text = [
 ]
 ```
 
+Et ce code:
+```
+scores_text = [
+    f"SuR L'iLe De La TêTe De MoRT...",
+    f"MALUS ADVERSAIRE: {des_face_6() * 100} points"
+]
+```
+
+par celui-ci:
+```
+scores_text = [
+    f"SuR L'iLe De La TêTe De MoRT...",
+    f"MALUS ADVERSAIRE: {des_face_6() * 100 * multiplicateur} points"
+]
+```
+
 #### Le malus de l'île
 La dernière chose à changer est cette ligne, qui enlève les points aux adversaires:
 
