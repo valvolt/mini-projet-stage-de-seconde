@@ -155,7 +155,7 @@ Il reste à ajouter un bouton RELANCER. Le code suivant sera utile, à vous de l
 
 ```
 # Couleurs pour notre bouton RELANCER
-button_color = (100, 100, 100)
+button_color = (200, 200, 200)
 text_color = (0, 0, 0)
 ```
 
