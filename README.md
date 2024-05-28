@@ -2273,13 +2273,13 @@ if des_face_6() >= 3:
           ]
         else:
           # on a en plus perdu contre un bateau !!
-          total = -1 * valeur_bateau
+          total = - valeur_bateau
           # on remets à 0 si on est passé en négatif
           if total < 0:
               total = 0
           scores_text = [
               f"LE NAVIRE VOUS A COULÉ !!",
-              f"TOTAL: {total} points"
+              f"TOTAL: -{valeur_bateau} points"
           ]
 ```
 
