@@ -1468,7 +1468,7 @@ De la même manière que vous avons écrit une fonction `lancer_de`, ajoutez en 
 # Fonction pour piocher une carte
 def piocher_carte():
     # on tire un numéro entre 0 (première carte) et len(jeu_de_cartes) -1
-    # (la longueur (length) de notre tableau, soir le nombre total de cartes,
+    # (la longueur (length) de notre tableau, soit le nombre total de cartes,
     # moins 1 pour tomber sur le numéro 34 au maximum)
     numero = random.randint(0, len(jeu_de_cartes) -1)
     # on renvoie la carte qui correspond
