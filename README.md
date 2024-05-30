@@ -343,7 +343,7 @@ C'est assez simple à faire en python, placez ce code au bon endroit:
 # On stocke le contenu des variables dans un tableau
 stockage = [de_1, de_2, de_3, de_4, de_5, de_6, de_7, de_8]
 # On trie dans l'ordre croissant
-stockate.sort()
+stockage.sort()
 # On ré-assigne les valeurs triées aux variables
 de_1, de_2, de_3, de_4, de_5, de_6, de_7, de_8 = stockage
 ```
@@ -1296,28 +1296,32 @@ Avant même de tester si on a un joueur ou plus, on va tester si on a terminé, 
 
 Juste avant les lignes précédentes, ajoutez le code suivant:
 ```
-for event in pygame.event.get():
-    if event.type == pygame.QUIT:
-        running = False
+# Le jeu est-il terminé ?
+if fin_du_jeu == True:
+    # On affiche la même chose que l'écran d'accueil, avec les scores et les mots "fin du jeu"
 
-screen.fill(white)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
-font = pygame.font.Font(None, 36)
-text_surf = font.render("Partie Terminée", True, text_color)
-text_rect = pygame.Rect(250, 50, 100, 40)
-screen.blit(text_surf, text_rect)
+    screen.fill(white)
 
-# prénom et score du premier joueur
-pygame.draw.rect(screen, green, rect_joueur1)
-text_surf = font.render(f"{prenom1} - TOTAL: {scores[0]}", True, text_color)
-text_rect = text_surf.get_rect(center=rect_joueur1.center)
-screen.blit(text_surf, text_rect)
+    font = pygame.font.Font(None, 36)
+    text_surf = font.render("Partie Terminée", True, text_color)
+    text_rect = pygame.Rect(250, 50, 100, 40)
+    screen.blit(text_surf, text_rect)
 
-# prénom et score du deuxième joueur
-pygame.draw.rect(screen, green, rect_joueur2)
-text_surf = font.render(f"{prenom2} - TOTAL: {scores[1]}", True, text_color)
-text_rect = text_surf.get_rect(center=rect_joueur2.center)
-screen.blit(text_surf, text_rect)
+    # prénom et score du premier joueur
+    pygame.draw.rect(screen, green, rect_joueur1)
+    text_surf = font.render(f"{prenom1} - TOTAL: {scores[0]}", True, text_color)
+    text_rect = text_surf.get_rect(center=rect_joueur1.center)
+    screen.blit(text_surf, text_rect)
+
+    # prénom et score du deuxième joueur
+    pygame.draw.rect(screen, green, rect_joueur2)
+    text_surf = font.render(f"{prenom2} - TOTAL: {scores[1]}", True, text_color)
+    text_rect = text_surf.get_rect(center=rect_joueur2.center)
+    screen.blit(text_surf, text_rect)
 ```
 
 Dernier point: comme on a ajouté une nouvelle clause `if`, le `if` précédent doit devenir un `else if` (`elif` en python) sinon l'écran de jeu normal viendra s'afficher par-dessus l'écran de fin de jeu.
